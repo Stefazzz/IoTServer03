@@ -65,12 +65,12 @@ void setupApi(AsyncWebServer &server)
 
     // Responder preflight CORS / not found
     server.onNotFound([](AsyncWebServerRequest *req)
-                      {
+                    {
     if (req->method() == HTTP_OPTIONS) { req->send(204); return; }
     sendError(req, 404, "not_found"); });
     // -------- Pagina principal --------
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-              {
+                {
         if (SPIFFS.exists("/index.html")) {
             request->send(SPIFFS, "/index.html", "text/html");
         } else {
@@ -87,6 +87,9 @@ void setupApi(AsyncWebServer &server)
     // -------- SETTINGS --------
     // GET /api/settings
     server.on("/api/settings", HTTP_GET, handleGetSettings);
+
+    // GET /api/last_uplink
+    server.on("/api/last_uplink", HTTP_GET, handleLastUplink);
 
     // GET /api/settings_download
     server.on("/api/settings_download", HTTP_GET, handleDownloadSettings);

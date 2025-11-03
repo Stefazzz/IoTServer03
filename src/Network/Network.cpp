@@ -1,5 +1,6 @@
 #include "Network.h"
 #include "../core/Logger.h"
+#include "../Settings/settings.h"
 
 // --- Configuración MQTT TTN ---
 const char *mqttServer = "62.171.140.128"; // o us1, au1 según tu región
@@ -21,19 +22,36 @@ const unsigned long WIFI_TIMEOUT_MS = 15000;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+// Último payload recibido (raw). Declarado extern en Network.h
+String last_uplink = "";
+
 // --- Función de callback (cuando llega un mensaje) ---
 void callback(char *topic, byte *payload, unsigned int length)
 {
     Logger::info("\n📡 Tópico: ");
     Logger::info(topic);
     Serial.print("📦 Datos: ");
-    String data = "";
+    // Construir el string del payload (reemplazamos el anterior)
+    last_uplink = "";
     for (unsigned int i = 0; i < length; i++)
     {
-        data += (char)payload[i];
+        last_uplink += (char)payload[i];
     }
-    Serial.println(data);
-    // Aquí puedes procesar el JSON del uplink si quieres
+    Serial.println(last_uplink);
+
+    // Volcar el valor raw al documento global de Settings en RAM para que
+    // otros módulos (ej. /api/settings) lo puedan leer sin persistir.
+    Settings::doc["last_uplink_raw"] = last_uplink;
+
+    // Intentar parsear JSON del payload y, si es válido, guardar también
+    // una representación JSON en Settings::doc["last_uplink_json"]. No
+    // persistimos automáticamente para evitar desgaste de SPIFFS.
+    DynamicJsonDocument tmp(1024);
+    DeserializationError err = deserializeJson(tmp, last_uplink);
+    if (!err)
+    {
+        Settings::doc["last_uplink_json"].set(tmp.as<JsonVariant>());
+    }
 }
 
 void connectMQTT()

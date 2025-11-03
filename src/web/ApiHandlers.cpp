@@ -49,6 +49,27 @@ namespace ApiHandlers
         sendJsonEnvelope(req, 200, Settings::doc, 1);
     }
 
+    // GET /api/last_uplink -> devuelve el último uplink recibido (raw + parsed JSON si existe)
+    void handleLastUplink(AsyncWebServerRequest *req)
+    {
+        DynamicJsonDocument outDoc(2048);
+
+        if (Settings::doc.containsKey("last_uplink_raw")) {
+            outDoc["raw"] = Settings::doc["last_uplink_raw"].as<const char*>();
+        } else {
+            outDoc["raw"] = "";
+        }
+
+        if (Settings::doc.containsKey("last_uplink_json")) {
+            outDoc["json"].set(Settings::doc["last_uplink_json"].as<JsonVariantConst>());
+        } else {
+            outDoc["json"] = nullptr;
+        }
+
+        // Envolver con la convención { ok, code, data }
+        sendJsonEnvelope(req, 200, outDoc, 3);
+    }
+
     // GET /api/settings/download  → attachment “puro” (sin ok/code)
     void handleDownloadSettings(AsyncWebServerRequest *req)
     {

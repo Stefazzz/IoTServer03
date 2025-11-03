@@ -12,6 +12,7 @@ namespace ApiHandlers
 
     // SETTINGS
     void handleGetSettings(AsyncWebServerRequest *req);
+    void handleLastUplink(AsyncWebServerRequest *req);
     void handleDownloadSettings(AsyncWebServerRequest *req);
     void handlePostSettings(AsyncWebServerRequest *req, const String &bodyJson);
 

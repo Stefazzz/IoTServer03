@@ -18,6 +18,9 @@ extern const char *topic_sub;
 extern WiFiClient espClient;
 extern PubSubClient client;
 
+// Último payload recibido (raw)
+extern String last_uplink;
+
 void callback(char *topic, byte *payload, unsigned int length);
 void reconnectMQTT();
 void publishData(float temperature, float humidity);
