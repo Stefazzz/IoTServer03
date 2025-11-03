@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        ".env*": "dotenv",
+        "initializer_list": "cpp",
+        "cmath": "cpp"
+    }
+}
