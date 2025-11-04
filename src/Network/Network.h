@@ -27,3 +27,5 @@ void publishData(float temperature, float humidity);
 void connectWiFi();
 void connectMQTT();
 void Network_loop();
+// Inicia el task que procesa cambios en Settings (uplinks MQTT)
+void startSettingsTask();

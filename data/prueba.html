@@ -36,18 +36,20 @@
             </div>
     </header>
 
-    <div>
-                <h3>Último uplink recibido</h3>
-            <pre id="uplinkData">Cargando uplink...</pre>
-            <button id="btn-refresh">Actualizar ahora</button>
-    </div>
+
     
 </div>
-    <!-- incluir script que actualiza hora/fecha -->
-    <script src="assets/js/header.js"></script>
-    <!-- loader de datos (settings / last_uplink) -->
-    <!-- Se carga peticiones.js que muestra el estado WiFi y último uplink en #uplinkData -->
-    <script src="assets/js/peticiones.js"></script>
+        <!-- incluir script que actualiza hora/fecha -->
+        <script src="assets/js/header.js"></script>
+        <!-- loader de datos (settings / last_uplink) -->
+        <script src="assets/js/dataLoader.js"></script>
+
+        <!-- Sección para mostrar último uplink -->
+        <main id="content" class="site-content">
+            <h3>Último uplink recibido</h3>
+            <pre id="uplinkData">Cargando uplink...</pre>
+            <button id="btn-refresh">Actualizar ahora</button>
+        </main>
 </body>
 </html>
 

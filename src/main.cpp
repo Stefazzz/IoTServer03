@@ -37,19 +37,20 @@ void setup()
   if (!Settings::begin())
     return;
 
-  if (!Settings::read())
+  if(!Settings::read())
   {
     Logger::error("No se pudo cargar settings.json");
     return;
   }
 
   Settings::printPrettyLogger();
-
 }
 
 void loop()
 {
   Network_loop();
+  startSettingsTask();
+
   /*
   // Simulación de datos de los sensores
   float temperature = 200;
@@ -57,6 +58,6 @@ void loop()
 
   //Publicar datos cada 15 segundos
   publishData(temperature, humidity);
-  delay(15000); 
+  delay(15000);
 */
-  }
+}

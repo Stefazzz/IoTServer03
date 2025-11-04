@@ -1,6 +1,9 @@
 #include "Network.h"
 #include "../core/Logger.h"
 #include "../Settings/settings.h"
+// FreeRTOS (task / notifications)
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 // --- Configuración MQTT TTN ---
 const char *mqttServer = "62.171.140.128"; // o us1, au1 según tu región
@@ -24,6 +27,83 @@ PubSubClient client(espClient);
 
 // Último payload recibido (raw). Declarado extern en Network.h
 String last_uplink = "";
+
+// Handle del task que procesa uplinks recibidos por MQTT
+static TaskHandle_t settingsTaskHandle = NULL;
+
+// Task que espera notificaciones cuando llega un nuevo uplink.
+static void settingsTask(void *pvParameters) {
+    (void)pvParameters;
+    String prev = "";
+    for (;;) {
+        // Espera notificación (viene desde callback) o timeout ocasional
+        // Se despierta inmediatamente cuando xTaskNotifyGive es llamado.
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(30000)); // 30s timeout
+
+        // Leer el último uplink desde Settings::doc
+        String current = "";
+        if (Settings::doc.containsKey("last_uplink_raw")) {
+            current = Settings::doc["last_uplink_raw"].as<const char*>();
+        }
+
+        if (current.length() == 0) {
+            // nada que procesar
+            continue;
+        }
+
+        if (current == prev) {
+            // mismo payload que antes, nada nuevo
+            continue;
+        }
+
+        // Nuevo payload: procesar
+        Logger::info(String("[SettingsTask] Nuevo uplink detectado, longitud=") + current.length());
+
+        // Intentar parsear JSON y volcar una representación procesada en Settings::doc
+        DynamicJsonDocument doc(2048);
+        DeserializationError err = deserializeJson(doc, current);
+        if (!err) {
+            bool changed = false;
+            // Iterar sobre cada campo del JSON recibido
+            JsonObject root = doc.as<JsonObject>();
+            for (JsonPair kv : root) {
+                const char* key = kv.key().c_str();
+                // Si el campo existe en Settings::doc, actualizarlo
+                if (Settings::doc.containsKey(key)) {
+                    // Comparar valores antes de actualizar
+                    String oldValue;
+                    String newValue;
+                    serializeJson(Settings::doc[key], oldValue);
+                    serializeJson(kv.value(), newValue);
+                    
+                    if (oldValue != newValue) {
+                        Logger::info(String("[SettingsTask] Actualizando ") + key + 
+                                   " de '" + oldValue + "' a '" + newValue + "'");
+                        Settings::doc[key] = kv.value();
+                        changed = true;
+                    }
+                }
+            }
+            
+            // Si hubo cambios, guardar en SPIFFS
+            if (changed) {
+                Logger::info("[SettingsTask] Guardando cambios en settings.json");
+                if (Settings::save()) {
+                    Logger::info("[SettingsTask] Cambios guardados correctamente");
+                } else {
+                    Logger::error("[SettingsTask] Error al guardar cambios");
+                }
+            } else {
+                Logger::info("[SettingsTask] No se detectaron cambios en campos conocidos");
+            }
+        } else {
+            Logger::error(String("[SettingsTask] Falló deserializeJson: ") + err.c_str());
+        }
+
+        // Actualizamos prev
+        prev = current;
+    }
+}
 
 // --- Función de callback (cuando llega un mensaje) ---
 void callback(char *topic, byte *payload, unsigned int length)
@@ -52,12 +132,37 @@ void callback(char *topic, byte *payload, unsigned int length)
     {
         Settings::doc["last_uplink_json"].set(tmp.as<JsonVariant>());
     }
+
+    // Notificar al task que procesa cambios (si fue creado)
+    if (settingsTaskHandle != NULL) {
+        // Notificar desde contexto no-ISR: usar xTaskNotifyGive
+        xTaskNotifyGive(settingsTaskHandle);
+    }
 }
 
 void connectMQTT()
 {
     client.setServer(mqttServer, mqttPort);
     client.setCallback(callback);
+}
+
+void startSettingsTask() {
+    if (settingsTaskHandle != NULL) return; // ya iniciado
+    BaseType_t res = xTaskCreatePinnedToCore(
+        settingsTask,
+        "SettingsTask",
+        4096,           // stack size en bytes
+        NULL,
+        1,              // prioridad
+        &settingsTaskHandle,
+        1               // core 1
+    );
+    if (res == pdPASS) {
+        Logger::info("SettingsTask iniciado");
+    } else {
+        Logger::error("No se pudo crear SettingsTask");
+        settingsTaskHandle = NULL;
+    }
 }
 
 void connectWiFi()

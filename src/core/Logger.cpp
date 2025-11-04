@@ -12,3 +12,7 @@ void Logger::info(const String &msg) {
 void Logger::error(const String &msg) {
     Serial.println("[ERROR] " + msg);
 }
+
+void Logger::warn(const String &msg) {
+    Serial.println("[WARN] " + msg);
+}

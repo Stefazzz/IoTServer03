@@ -63,6 +63,12 @@ void setupApi(AsyncWebServer &server)
 {
     enableCORS();
 
+    // Servir archivos estáticos (CSS, JS, img) desde SPIFFS
+    // Esto permite que peticiones como /assets/js/header.js devuelvan el archivo
+    server.serveStatic("/assets", SPIFFS, "/assets");
+    // Servir el root desde SPIFFS (index.html por defecto)
+    server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+
     // Responder preflight CORS / not found
     server.onNotFound([](AsyncWebServerRequest *req)
                     {
