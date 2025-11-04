@@ -30,55 +30,65 @@ String last_uplink = "";
 // Handle del task que procesa uplinks recibidos por MQTT
 static TaskHandle_t settingsTaskHandle = NULL;
 
-bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String& path = "") {
+bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &path = "")
+{
     bool changed = false;
 
     // Si src es objeto JSON
-    if (src.is<JsonObjectConst>()) {
+    if (src.is<JsonObjectConst>())
+    {
         JsonObjectConst srcObj = src.as<JsonObjectConst>();
         JsonObject destObj = dest.as<JsonObject>();
 
-        for (JsonPairConst kv : srcObj) {
-            const char* key = kv.key().c_str();
+        for (JsonPairConst kv : srcObj)
+        {
+            const char *key = kv.key().c_str();
             String fullPath = path.length() ? path + "." + key : key;
 
-            if (!destObj.containsKey(key)) {
-                destObj[key] = kv.value();
-                Logger::info(String("[SettingsTask] Añadido nuevo campo: ") + fullPath);
-                changed = true;
-            } else {
+            if (!destObj.containsKey(key))
+            {
+                Logger::warn(String("CAMPO NO EXISTE"));
+            }
+            else
+            {
                 changed |= updateJsonRecursive(destObj[key], kv.value(), fullPath);
             }
         }
     }
 
     // Si src es array JSON
-    else if (src.is<JsonArrayConst>()) {
+    else if (src.is<JsonArrayConst>())
+    {
         JsonArrayConst srcArray = src.as<JsonArrayConst>();
         JsonArray destArray = dest.as<JsonArray>();
 
         size_t i = 0;
-        for (JsonVariantConst v : srcArray) {
-            if (i >= destArray.size()) {
-                destArray.add(v);
-                changed = true;
-            } else {
+        for (JsonVariantConst v : srcArray)
+        {
+            if (i < destArray.size())
+            {
                 changed |= updateJsonRecursive(destArray[i], v, path + "[" + String(i) + "]");
+            }
+            else
+            {
+                Logger::warn(String("ÍNDICE FUERA DE RANGO: ") + path + "[" + String(i) + "]");
             }
             i++;
         }
     }
 
     // Si src es valor simple (número, string, bool, etc.)
-    else if (src != dest) {
+    else if (src != dest)
+    {
         dest.set(src);
+        Logger::info(String("[SettingsTask] Actualizando campo: ") + path);\
         changed = true;
     }
 
     return changed;
 }
 
-// --- TASK MODIFICADO ---
+// --- TASK  ---
 static void settingsTask(void *pvParameters)
 {
     (void)pvParameters;
