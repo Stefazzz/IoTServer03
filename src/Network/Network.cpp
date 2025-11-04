@@ -1,7 +1,6 @@
 #include "Network.h"
 #include "../core/Logger.h"
 #include "../Settings/settings.h"
-// FreeRTOS (task / notifications)
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -31,72 +30,101 @@ String last_uplink = "";
 // Handle del task que procesa uplinks recibidos por MQTT
 static TaskHandle_t settingsTaskHandle = NULL;
 
-// Task que espera notificaciones cuando llega un nuevo uplink.
-static void settingsTask(void *pvParameters) {
+bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String& path = "") {
+    bool changed = false;
+
+    // Si src es objeto JSON
+    if (src.is<JsonObjectConst>()) {
+        JsonObjectConst srcObj = src.as<JsonObjectConst>();
+        JsonObject destObj = dest.as<JsonObject>();
+
+        for (JsonPairConst kv : srcObj) {
+            const char* key = kv.key().c_str();
+            String fullPath = path.length() ? path + "." + key : key;
+
+            if (!destObj.containsKey(key)) {
+                destObj[key] = kv.value();
+                Logger::info(String("[SettingsTask] Añadido nuevo campo: ") + fullPath);
+                changed = true;
+            } else {
+                changed |= updateJsonRecursive(destObj[key], kv.value(), fullPath);
+            }
+        }
+    }
+
+    // Si src es array JSON
+    else if (src.is<JsonArrayConst>()) {
+        JsonArrayConst srcArray = src.as<JsonArrayConst>();
+        JsonArray destArray = dest.as<JsonArray>();
+
+        size_t i = 0;
+        for (JsonVariantConst v : srcArray) {
+            if (i >= destArray.size()) {
+                destArray.add(v);
+                changed = true;
+            } else {
+                changed |= updateJsonRecursive(destArray[i], v, path + "[" + String(i) + "]");
+            }
+            i++;
+        }
+    }
+
+    // Si src es valor simple (número, string, bool, etc.)
+    else if (src != dest) {
+        dest.set(src);
+        changed = true;
+    }
+
+    return changed;
+}
+
+// --- TASK MODIFICADO ---
+static void settingsTask(void *pvParameters)
+{
     (void)pvParameters;
     String prev = "";
-    for (;;) {
-        // Espera notificación (viene desde callback) o timeout ocasional
-        // Se despierta inmediatamente cuando xTaskNotifyGive es llamado.
-        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(30000)); // 30s timeout
 
-        // Leer el último uplink desde Settings::doc
+    for (;;)
+    {
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(30000)); // Espera notificación o timeout
+
         String current = "";
-        if (Settings::doc.containsKey("last_uplink_raw")) {
-            current = Settings::doc["last_uplink_raw"].as<const char*>();
+        if (Settings::doc.containsKey("last_uplink_raw"))
+        {
+            current = Settings::doc["last_uplink_raw"].as<const char *>();
         }
 
-        if (current.length() == 0) {
-            // nada que procesar
+        if (current.length() == 0 || current == prev)
             continue;
-        }
 
-        if (current == prev) {
-            // mismo payload que antes, nada nuevo
-            continue;
-        }
-
-        // Nuevo payload: procesar
         Logger::info(String("[SettingsTask] Nuevo uplink detectado, longitud=") + current.length());
 
-        // Intentar parsear JSON y volcar una representación procesada en Settings::doc
-        DynamicJsonDocument doc(2048);
+        DynamicJsonDocument doc(4096);
         DeserializationError err = deserializeJson(doc, current);
-        if (!err) {
-            bool changed = false;
-            // Iterar sobre cada campo del JSON recibido
-            JsonObject root = doc.as<JsonObject>();
-            for (JsonPair kv : root) {
-                const char* key = kv.key().c_str();
-                // Si el campo existe en Settings::doc, actualizarlo
-                if (Settings::doc.containsKey(key)) {
-                    // Comparar valores antes de actualizar
-                    String oldValue;
-                    String newValue;
-                    serializeJson(Settings::doc[key], oldValue);
-                    serializeJson(kv.value(), newValue);
-                    
-                    if (oldValue != newValue) {
-                        Logger::info(String("[SettingsTask] Actualizando ") + key + 
-                                   " de '" + oldValue + "' a '" + newValue + "'");
-                        Settings::doc[key] = kv.value();
-                        changed = true;
-                    }
-                }
+        if (err)
+        {
+            Logger::error(String("[SettingsTask] Error parseando uplink: ") + err.c_str());
+            continue;
+        }
+
+        bool changed = updateJsonRecursive(Settings::doc, doc);
+        if (changed)
+        {
+            Logger::info("[SettingsTask] Guardando cambios en settings.json");
+            if (Settings::save())
+            {
+                Logger::info("[SettingsTask] Cambios guardados correctamente");
             }
-            
-            // Si hubo cambios, guardar en SPIFFS
-            if (changed) {
-                Logger::info("[SettingsTask] Guardando cambios en settings.json");
-                if (Settings::save()) {
-                    Logger::info("[SettingsTask] Cambios guardados correctamente");
-                } else {
-                    Logger::error("[SettingsTask] Error al guardar cambios");
-                }
-            } }else {
-                Logger::warn("[SettingsTask] No se detectaron cambios en campos conocidos");
+            else
+            {
+                Logger::error("[SettingsTask] Error al guardar cambios");
             }
-        // Actualizamos prev
+        }
+        else
+        {
+            Logger::warn("[SettingsTask] No se detectaron cambios en campos conocidos");
+        }
+
         prev = current;
     }
 }
@@ -130,7 +158,8 @@ void callback(char *topic, byte *payload, unsigned int length)
     }
 
     // Notificar al task que procesa cambios (si fue creado)
-    if (settingsTaskHandle != NULL) {
+    if (settingsTaskHandle != NULL)
+    {
         // Notificar desde contexto no-ISR: usar xTaskNotifyGive
         xTaskNotifyGive(settingsTaskHandle);
     }
@@ -141,7 +170,6 @@ void connectMQTT()
     client.setServer(mqttServer, mqttPort);
     client.setCallback(callback);
 }
-
 
 void connectWiFi()
 {
@@ -199,20 +227,25 @@ void reconnectMQTT()
     }
 }
 
-void startSettingsTask() {
-    if (settingsTaskHandle != NULL) return; // ya iniciado
+void startSettingsTask()
+{
+    if (settingsTaskHandle != NULL)
+        return; // ya iniciado
     BaseType_t res = xTaskCreatePinnedToCore(
         settingsTask,
         "SettingsTask",
-        4096,           // stack size en bytes
-        NULL,           // parámetros
-        1,              // prioridad
+        4096, // stack size en bytes
+        NULL, // parámetros
+        1,    // prioridad
         &settingsTaskHandle,
-        1               // core 1
+        1 // core 1
     );
-    if (res == pdPASS) {
+    if (res == pdPASS)
+    {
         Logger::info("SettingsTask iniciado");
-    } else {
+    }
+    else
+    {
         Logger::error("No se pudo crear SettingsTask");
         settingsTaskHandle = NULL;
     }
@@ -238,8 +271,10 @@ void publishData(float temperature, float humidity)
     }
 }
 
-void Network_loop() {
-    if (!client.connected()) {
+void Network_loop()
+{
+    if (!client.connected())
+    {
         reconnectMQTT();
     }
     client.loop();
