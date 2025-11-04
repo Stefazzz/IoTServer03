@@ -93,13 +93,9 @@ static void settingsTask(void *pvParameters) {
                 } else {
                     Logger::error("[SettingsTask] Error al guardar cambios");
                 }
-            } else {
-                Logger::info("[SettingsTask] No se detectaron cambios en campos conocidos");
+            } }else {
+                Logger::warn("[SettingsTask] No se detectaron cambios en campos conocidos");
             }
-        } else {
-            Logger::error(String("[SettingsTask] Falló deserializeJson: ") + err.c_str());
-        }
-
         // Actualizamos prev
         prev = current;
     }
@@ -146,24 +142,6 @@ void connectMQTT()
     client.setCallback(callback);
 }
 
-void startSettingsTask() {
-    if (settingsTaskHandle != NULL) return; // ya iniciado
-    BaseType_t res = xTaskCreatePinnedToCore(
-        settingsTask,
-        "SettingsTask",
-        4096,           // stack size en bytes
-        NULL,
-        1,              // prioridad
-        &settingsTaskHandle,
-        1               // core 1
-    );
-    if (res == pdPASS) {
-        Logger::info("SettingsTask iniciado");
-    } else {
-        Logger::error("No se pudo crear SettingsTask");
-        settingsTaskHandle = NULL;
-    }
-}
 
 void connectWiFi()
 {
@@ -218,6 +196,25 @@ void reconnectMQTT()
             Logger::info("), reintentando...");
             delay(5000);
         }
+    }
+}
+
+void startSettingsTask() {
+    if (settingsTaskHandle != NULL) return; // ya iniciado
+    BaseType_t res = xTaskCreatePinnedToCore(
+        settingsTask,
+        "SettingsTask",
+        4096,           // stack size en bytes
+        NULL,           // parámetros
+        1,              // prioridad
+        &settingsTaskHandle,
+        1               // core 1
+    );
+    if (res == pdPASS) {
+        Logger::info("SettingsTask iniciado");
+    } else {
+        Logger::error("No se pudo crear SettingsTask");
+        settingsTaskHandle = NULL;
     }
 }
 

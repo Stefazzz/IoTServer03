@@ -5,10 +5,12 @@ DynamicJsonDocument Settings::doc(Settings::kCapacity);
 // CREAMOS UN JSON POR DEFECTO
 static const char DEFAULT_JSON[] PROGMEM = R"json(
 {
+    "name": "Sistema_de_Control_Pisicnas",
     "device_id": "ESP329A9EF0C8F42C",
     "device_name": "espaefcfc",
     "device_user": "admin",
     "device_password": "admin",
+    "location": "Finca Viila Alejandra - Guadalajara de Buga",
 
     "wifi": {
         "wifi_mode": true,
@@ -29,6 +31,20 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
             "dns_secondary": "8.8.4.4",
             "min_rssi_dbm": -80,
             "scan_interval_s": 30
+        },
+        "lora": {
+            "devEUI": "70B3D57ED004ABCD",
+            "appEUI": "70B3D57ED0001234",
+            "appKey": "11223344556677889900AABBCCDDEEFF",
+            "band": "US915"
+        },
+        ota": {
+            "enabled": true,
+            "port": 3232,
+            "hostname": "esp32s3-185908",
+            "auth_required": true,
+            "username": "admin",
+            "password": "admin123"
         },
         "ring": {
             "enabled": true,
@@ -64,13 +80,13 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
         "mqtt_time_interval": 60000,
         "mqtt_status_send": true
     },
-
     "actuators": {
         "persist_states": true,
         "safe_defaults_on_boot": true,
         "digital": [
             { "name": "relay_1", "state": false, "inverted": true },
-            { "name": "relay_2", "state": false, "inverted": true }
+            { "name": "relay_2", "state": false, "inverted": true },
+            { "name": "relay_3", "state": false, "inverted": true }
         ],
         "analog": {
             "name": "dimmer",
@@ -81,7 +97,16 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
             "gamma_correction": 1.0
         }
     },
-
+    "sensors": [
+        {
+            "type": "DHT22",
+            "pin": 5,
+            "variables": [
+                "temperature",
+                "humidity"
+            ]
+        }
+    ],
     "file_version": "2.0.0"
 }
 )json";

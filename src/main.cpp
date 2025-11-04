@@ -28,6 +28,8 @@ void setup()
     Logger::error("Settings not ready");
   }
 
+  startSettingsTask();
+  
   // API (solo settings por ahora)
   setupApi(server);
   server.begin();
@@ -49,7 +51,6 @@ void setup()
 void loop()
 {
   Network_loop();
-  startSettingsTask();
 
   /*
   // Simulación de datos de los sensores
