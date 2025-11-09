@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="shortcut icon" href="assets/img/finca.png" type="image/x-icon">
     <title>Finca Villa Alejandra</title>
 </head>
+
 <body>
     <div id="cont_padre">
         <header id="header" class="site-header">
@@ -34,20 +36,27 @@
                     <span id="tempValue" class="cont_temp_span">20°</span>
                 </div>
             </div>
-    </header>
+        </header>
 
-    <div>
-                <h3>Último uplink recibido</h3>
+        <div>
+            <h3>Último uplink recibido</h3>
             <pre id="uplinkData">Cargando uplink...</pre>
             <button id="btn-refresh">Actualizar ahora</button>
+        </div>
+        <div>
+            <h3>Red WiFi actual:</h3>
+            <span id="ssidValue">Cargando...</span>
+        </div>
+                <div>
+            <h3>IPV4:</h3>
+            <span id="ipv4Value">Cargando...</span>
+        </div>
     </div>
-    
-</div>
     <!-- incluir script que actualiza hora/fecha -->
     <script src="assets/js/header.js"></script>
     <!-- loader de datos (settings / last_uplink) -->
     <!-- Se carga peticiones.js que muestra el estado WiFi y último uplink en #uplinkData -->
     <script src="assets/js/peticiones.js"></script>
 </body>
-</html>
 
+</html>

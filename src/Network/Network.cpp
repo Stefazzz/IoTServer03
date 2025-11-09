@@ -42,8 +42,8 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
 
         for (JsonPairConst kv : srcObj)
         {
-            const char *key = kv.key().c_str();
-            String fullPath = path.length() ? path + "." + key : key;
+            const char *key = kv.key().c_str();                       // clave actual
+            String fullPath = path.length() ? path + "." + key : key; // ruta completa al campo
 
             if (!destObj.containsKey(key))
             {
@@ -51,7 +51,7 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
             }
             else
             {
-                changed |= updateJsonRecursive(destObj[key], kv.value(), fullPath);
+                changed |= updateJsonRecursive(destObj[key], kv.value(), fullPath); // llamada recursiva
             }
         }
     }
@@ -81,7 +81,7 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
     else if (src != dest)
     {
         dest.set(src);
-        Logger::info(String("[SettingsTask] Actualizando campo: ") + path);\
+        Logger::info(String("[SettingsTask] Actualizando campo: ") + path);
         changed = true;
     }
 
@@ -89,9 +89,9 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
 }
 
 // --- TASK  ---
-static void settingsTask(void *pvParameters)
+static void settingsTask(void *pvParameters) // procesa uplinks MQTT
 {
-    (void)pvParameters;
+    (void)pvParameters; // evitar advertencia de variable no usada
     String prev = "";
 
     for (;;)
@@ -121,6 +121,11 @@ static void settingsTask(void *pvParameters)
         if (changed)
         {
             Logger::info("[SettingsTask] Guardando cambios en settings.json");
+
+            //Limpiar campos temporales
+            Settings::doc.remove("last_uplink_raw");
+            Settings::doc.remove("last_uplink_json");
+            
             if (Settings::save())
             {
                 Logger::info("[SettingsTask] Cambios guardados correctamente");

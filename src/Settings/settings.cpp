@@ -10,7 +10,6 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
     "device_name": "espaefcfc",
     "device_user": "admin",
     "device_password": "admin",
-
     "wifi": {
         "wifi_mode": true,
         "stations": [

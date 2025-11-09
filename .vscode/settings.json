@@ -3,5 +3,6 @@
         ".env*": "dotenv",
         "initializer_list": "cpp",
         "cmath": "cpp"
-    }
+    },
+    "idf.portWin": "COM15"
 }
