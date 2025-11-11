@@ -27,16 +27,18 @@ namespace ApiHandlers
     // Envoltorio estándar: { ok:true, code:<n>, data:<payload> }
     void sendJsonEnvelope(AsyncWebServerRequest *req, int httpCode, const JsonDocument &payload, int code)
     {
-        // Capacidad = payload + overhead pequeño
-        size_t cap = measureJson(payload) + JSON_OBJECT_SIZE(3) + 128;
+        // Usar el mismo tamaño que Settings::kCapacity más overhead para el envelope
+        size_t cap = Settings::kCapacity + JSON_OBJECT_SIZE(3) + 256;
         DynamicJsonDocument out(cap);
         out["ok"]   = true;
         out["code"] = code;
         out["data"].set(payload.as<JsonVariantConst>());
 
         String s;
-        s.reserve(cap);
+        size_t len = measureJson(out);  // Medir el tamaño exacto necesario
+        s.reserve(len + 1);  // +1 para el terminador nulo
         serializeJson(out, s);
+        
         sendJson(req, httpCode, s);
     }
 
