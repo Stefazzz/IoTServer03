@@ -18,13 +18,6 @@ if (json.data.wifi && json.data.wifi.stations && json.data.wifi.stations.length 
 }
 
 /*
-const ssidEl = document.getElementById('ssidValue');
-if (json.data.wifi.wifi_mode) {
-  ssidEl.textContent = json.data.wifi.wifi_mode;
-} else {
-  ssidEl.textContent = "No conectado";
-}
-
 // Mostrar IPV4 actual si existe
 const ipv4 = document.getElementById('ipv4Value');
 if (json.wifi.defaults) {
@@ -34,8 +27,7 @@ if (json.wifi.defaults) {
 }*/
 
 
-    // Procesar información WiFi si existe
-    let display = '';
+   let display = '';
     if (json.wifi && json.wifi.wifi_mode) {
       const wifiInfo = json.wifi.wifi_mode;
       display += `=== Estado de Conexión ===\n`;
