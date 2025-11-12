@@ -4,6 +4,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+static String lastChangedPath = "";
+
 // --- Configuración MQTT TTN ---
 const char *mqttServer = "62.171.140.128"; // o us1, au1 según tu región
 const int mqttPort = 1883;
@@ -44,7 +46,7 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
         {
             const char *key = kv.key().c_str();                       // clave actual
             String fullPath = path.length() ? path + "." + key : key; // ruta completa al campo
-
+            
             if (!destObj.containsKey(key))
             {
                 Logger::warn(String("CAMPO NO EXISTE"));
@@ -52,6 +54,7 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
             else
             {
                 changed |= updateJsonRecursive(destObj[key], kv.value(), fullPath); // llamada recursiva
+                lastChangedPath = fullPath;
             }
         }
     }
@@ -68,6 +71,7 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
             if (i < destArray.size())
             {
                 changed |= updateJsonRecursive(destArray[i], v, path + "[" + String(i) + "]");
+                lastChangedPath = path + "[" + String(i) + "]";
             }
             else
             {
@@ -80,6 +84,7 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
     // Si src es valor simple (número, string, bool, etc.)
     else if (src != dest)
     {
+        lastChangedPath = path;
         dest.set(src);
         Logger::info(String("[SettingsTask] Actualizando campo: ") + path);
         changed = true;
@@ -128,7 +133,9 @@ static void settingsTask(void *pvParameters) // procesa uplinks MQTT
             
             if (Settings::save())
             {
-                Logger::info("[SettingsTask] Cambios guardados correctamente");
+                Logger::info(String("[SettingsTask] Último campo modificado: ") + lastChangedPath);
+                Logger::info("[Settings_Task] Cambios guardados correctamente...AS");
+                lastChangedPath = "";
             }
             else
             {
@@ -194,7 +201,7 @@ void connectWiFi()
     WiFi.disconnect(true, true);
     delay(100);
 
-    Logger::info(String("Conectando a WiFi: ") + WIFI_SSID);
+    Logger::info(String("qlsConectando a WiFi: ") + WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
 
     // Espera (bloqueante) hasta conectar o hasta el timeout
