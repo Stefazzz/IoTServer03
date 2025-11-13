@@ -3,24 +3,11 @@
 #include "../Settings/settings.h"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
+#include "../actuators/ActuatorControl.h"
 static String lastChangedPath = "";
 
-// --- Configuración MQTT TTN ---
-const char *mqttServer = "62.171.140.128"; // o us1, au1 según tu región
-const int mqttPort = 1883;
-const char *mqttUser = "GRUPO1";
-const char *mqttPassword = "GRUPO1";
-
-// --- Tópico TTN para recibir todos los uplinks ---
-const char *topic_sub = "FincaVA/SistemaPiscina/Actuadores"; // o "v3/tu_app_id@ttn/devices/+/up"
-
-// === CAMBIA ESTO POR TU RED ===
-const char *WIFI_SSID = "Nicoll";
-const char *WIFI_PASS = "38875133";
-
-// Tiempo máximo de conexión (ms)
-const unsigned long WIFI_TIMEOUT_MS = 15000;
+const char *mqttServer = "62.171.140.128"; 
+static String mqtt_server_static = "";
 
 // MQTT cliente
 WiFiClient espClient;
@@ -46,7 +33,7 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
         {
             const char *key = kv.key().c_str();                       // clave actual
             String fullPath = path.length() ? path + "." + key : key; // ruta completa al campo
-            
+            //lastChangedPath = fullPath;
             if (!destObj.containsKey(key))
             {
                 Logger::warn(String("CAMPO NO EXISTE"));
@@ -54,7 +41,6 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
             else
             {
                 changed |= updateJsonRecursive(destObj[key], kv.value(), fullPath); // llamada recursiva
-                lastChangedPath = fullPath;
             }
         }
     }
@@ -71,7 +57,6 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
             if (i < destArray.size())
             {
                 changed |= updateJsonRecursive(destArray[i], v, path + "[" + String(i) + "]");
-                lastChangedPath = path + "[" + String(i) + "]";
             }
             else
             {
@@ -84,7 +69,6 @@ bool updateJsonRecursive(JsonVariant dest, JsonVariantConst src, const String &p
     // Si src es valor simple (número, string, bool, etc.)
     else if (src != dest)
     {
-        lastChangedPath = path;
         dest.set(src);
         Logger::info(String("[SettingsTask] Actualizando campo: ") + path);
         changed = true;
@@ -126,16 +110,32 @@ static void settingsTask(void *pvParameters) // procesa uplinks MQTT
         if (changed)
         {
             Logger::info("[SettingsTask] Guardando cambios en settings.json");
-
             //Limpiar campos temporales
             Settings::doc.remove("last_uplink_raw");
             Settings::doc.remove("last_uplink_json");
             
             if (Settings::save())
             {
-                Logger::info(String("[SettingsTask] Último campo modificado: ") + lastChangedPath);
-                Logger::info("[Settings_Task] Cambios guardados correctamente...AS");
-                lastChangedPath = "";
+                Logger::info("[SettingsTask] Cambios guardados correctamente");
+                
+                // Detectar qué cambió y aplicar acciones físicas
+                JsonObject incoming = doc.as<JsonObject>();
+                
+                // Si cambiaron actuadores, aplicar estados físicos
+                if (incoming.containsKey("actuators")) {
+                    Logger::info("[SettingsTask] Detectado cambio en actuators, aplicando estados...");
+                    // Aplicar cambios en los actuadores físicos
+                    extern void applyActuatorChanges();
+                    applyActuatorChanges();
+                }
+                
+                // Si cambió WiFi, programar reconexión
+                if (incoming.containsKey("wifi")) {
+                    Logger::info("[SettingsTask] Detectado cambio en WiFi, aplicando reconexión...");
+                    connectWiFi();
+                    // Para aplicar cambios WiFi de forma segura, se requiere reinicio
+                    // O implementar reconexión en tiempo real (más complejo)
+                }
             }
             else
             {
@@ -189,19 +189,20 @@ void callback(char *topic, byte *payload, unsigned int length)
 
 void connectMQTT()
 {
-    client.setServer(mqttServer, mqttPort);
+    mqtt_server_static = Settings::doc["mqtt"]["mqtt_server"].as<String>();
+    client.setServer(mqtt_server_static.c_str(), mqttPort);
     client.setCallback(callback);
 }
 
 void connectWiFi()
 {
     // CONECTIVIDAD WIFI
-    //  Limpia estado previo y pon modo estación (cliente)
+    // Limpia estado previo y pon modo estación (cliente)
     WiFi.mode(WIFI_MODE_STA);
     WiFi.disconnect(true, true);
     delay(100);
 
-    Logger::info(String("qlsConectando a WiFi: ") + WIFI_SSID);
+    Logger::info(String("Conectando a WiFi: ") + WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
 
     // Espera (bloqueante) hasta conectar o hasta el timeout
@@ -220,9 +221,37 @@ void connectWiFi()
     else
     {
         Serial.println("[WiFi] No se pudo conectar (timeout).");
-        // Si quieres, aquí podrías levantar un AP de emergencia
-        // WiFi.mode(WIFI_MODE_AP);
-        // WiFi.softAP("ESP32_AP", "adminserver32");
+        // Levantar AP de emergencia con configuración desde settings
+        if(wifi_AP){
+            Logger::info("[WiFi] Iniciando modo AP...");
+            
+            // Parsear las IPs desde strings a IPAddress
+            IPAddress apIP, apGW, apMask;
+            
+            // Usar valores por defecto si el parseo falla
+            if (!apIP.fromString(ipv4_static)) {
+                apIP = IPAddress(192, 168, 4, 1);
+                Logger::warn("[WiFi] No se pudo parsear ap_ipv4, usando 192.168.4.1");
+            }
+            if (!apGW.fromString(gateway_static)) {
+                apGW = IPAddress(192, 168, 4, 1);
+                Logger::warn("[WiFi] No se pudo parsear ap_gateway, usando 192.168.4.1");
+            }
+            if (!apMask.fromString(subnet_static)) {
+                apMask = IPAddress(255, 255, 255, 0);
+                Logger::warn("[WiFi] No se pudo parsear ap_subnet, usando 255.255.255.0");
+            }
+            
+            // Configurar IP estática del AP
+            WiFi.mode(WIFI_MODE_AP);
+            WiFi.softAPConfig(apIP, apGW, apMask);
+            WiFi.softAP(AP_SSID, AP_PASS);
+            
+            Logger::info(String("✅ [WiFi] AP iniciado. SSID: ") + AP_SSID);
+            Logger::info(String("[WiFi] IP del AP: ") + WiFi.softAPIP().toString());
+            Logger::info(String("[WiFi] Gateway: ") + apGW.toString());
+            Logger::info(String("[WiFi] Subnet: ") + apMask.toString());
+        }
     }
 }
 
@@ -272,7 +301,6 @@ void startSettingsTask()
         settingsTaskHandle = NULL;
     }
 }
-
 // publicacion de datos (2 datos )
 void publishData(float temperature, float humidity)
 {
@@ -292,7 +320,6 @@ void publishData(float temperature, float humidity)
         Logger::error("Error publicando el mensaje");
     }
 }
-
 void Network_loop()
 {
     if (!client.connected())
@@ -300,4 +327,8 @@ void Network_loop()
         reconnectMQTT();
     }
     client.loop();
+}
+// Función auxiliar para aplicar cambios en actuadores
+void applyActuatorChanges() {
+    ActuatorControl::applyAllStates();
 }

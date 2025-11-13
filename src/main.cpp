@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include "Network/Network.h"
+#include "Actuators/ActuatorControl.h"
 
 AsyncWebServer server(80);
 
@@ -19,9 +20,6 @@ void setup()
   // WiFi.softAP("ESP-IoTServer", "adminserver32");
   // Logger::info(String("AP IP: ") + WiFi.softAPIP().toString());
 
-  // CONECTIVIDAD WIFI
-  connectWiFi();
-  connectMQTT();
   // Settings
   if (!Settings::begin() || !Settings::read())
   {
@@ -30,6 +28,10 @@ void setup()
 
   startSettingsTask();
   
+    // CONECTIVIDAD WIFI
+  connectWiFi();
+  connectMQTT();
+
   // API (solo settings por ahora)
   setupApi(server);
   server.begin();
@@ -45,7 +47,21 @@ void setup()
     return;
   }
 
+
   Settings::printPrettyLogger();
+  
+
+  // Inicializar control de actuadores
+  Logger::info("=== Inicializando hardware de actuadores ===");
+  ActuatorControl::begin();
+  Logger::info("=== Hardware inicializado OK ===");
+  
+    // CONECTIVIDAD WIFI
+  //connectWiFi();
+  //connectMQTT();
+
+  // Comentado temporalmente para evitar reinicio - aplicar después del setup completo
+  // ActuatorControl::applyAllStates();
 }
 
 void loop()

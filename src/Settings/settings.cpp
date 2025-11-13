@@ -12,10 +12,11 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
     "device_password": "admin",
     "wifi": {
         "wifi_mode": true,
+        "wifi_timeout_ms": 15000,
         "stations": [
             { "ssid": "Nicoll", "password": "38875133", "priority": 1, "ip_static": false },
             {
-            "ssid": "Hotspot-Celular", "password": "MiClaveHotspot", "priority": 3,
+            "ssid": "ESP32_EMERGENCY", "password": "hola1234", "priority": 2,
             "ip_static": true, "ipv4": "192.168.43.50", "subnet": "255.255.255.0",
             "gateway": "192.168.43.1", "dns_primary": "8.8.8.8", "dns_secondary": "8.8.4.4"
         }
@@ -53,10 +54,10 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
         "mqtt_retain": false,
         "mqtt_qos": 0,
         "mqtt_id": "ESP329A9EF0C8F42C",
-        "mqtt_user": "emqx",
-        "mqtt_password": "public",
+        "mqtt_user": "GRUPO1",
+        "mqtt_password": "GRUPO1",
         "mqtt_clean_session": true,
-        "mqtt_willTopic": "emqx/ESP329A9EF0C8F42C/status",
+        "mqtt_willTopic": "FincaVA/SistemaPiscina/Actuadores",
         "mqtt_willMessage": { "connected": false },
         "mqtt_willQos": 0,
         "mqtt_willRetain": false,
@@ -70,15 +71,14 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
         "safe_defaults_on_boot": true,
         "digital": [
             { "name": "relay_1", "state": false, "inverted": true },
-            { "name": "relay_2", "state": false, "inverted": true }
+            { "name": "relay_2", "state": false, "inverted": true },
+            { "name": "relay_3", "state": false, "inverted": false }
         ],
         "analog": {
-            "name": "dimmer",
+            "name": "dht11",
             "enabled": true,
-            "value_percent": 0,
-            "range": { "min": 0, "max": 100 },
-            "smoothing_ms": 0,
-            "gamma_correction": 1.0
+            "humidity": 0,
+            "temp": 0
         }
     },
 

@@ -3,17 +3,24 @@
 #include <PubSubClient.h>
 
 // --- Configuración WiFi ---
-extern const char *WIFI_SSID;
-extern const char *WIFI_PASS;
-extern const unsigned long WIFI_TIMEOUT_MS;
+#define WIFI_SSID Settings::doc["wifi"]["stations"][0]["ssid"].as<String>().c_str()
+#define WIFI_PASS Settings::doc["wifi"]["stations"][0]["password"].as<String>().c_str()
+// Tiempo máximo de conexión (ms)
+#define WIFI_TIMEOUT_MS Settings::doc["wifi"]["wifi_timeout_ms"].as<unsigned long>()
 
 // --- Configuración MQTT ---
 extern const char *mqttServer;
-extern const int mqttPort;
-extern const char *mqttUser;
-extern const char *mqttPassword;
-extern const char *topic_sub;
-
+#define mqttPort Settings::doc["mqtt"]["mqtt_port"].as<int>()
+#define mqttUser Settings::doc["mqtt"]["mqtt_user"].as<String>().c_str()
+#define mqttPassword Settings::doc["mqtt"]["mqtt_password"].as<String>().c_str()
+#define topic_sub Settings::doc["mqtt"]["mqtt_willTopic"].as<String>().c_str()
+// Habilitar modo AP si no se conecta a WiFi
+#define AP_SSID Settings::doc["wifi"]["stations"][1]["ssid"].as<String>().c_str()
+#define AP_PASS Settings::doc["wifi"]["stations"][1]["password"].as<String>().c_str()
+#define wifi_AP Settings::doc["wifi"]["wifi_mode"].as<bool>()
+#define ipv4_static Settings::doc["wifi"]["stations"][1]["ipv4"].as<String>().c_str()
+#define subnet_static Settings::doc["wifi"]["stations"][1]["subnet"].as<String>().c_str()
+#define gateway_static Settings::doc["wifi"]["stations"][1]["gateway"].as<String>().c_str()
 // --- Variables globales ---
 extern WiFiClient espClient;
 extern PubSubClient client;
