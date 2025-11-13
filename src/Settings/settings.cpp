@@ -65,7 +65,21 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
         "mqtt_time_interval": 60000,
         "mqtt_status_send": true
     },
-
+    "sensors": {
+        "dht11": {
+            "enabled": true,
+            "read_interval_ms": 2000,
+            "temperature_offset": 0.0,
+            "humidity_offset": 0.0,
+            "last_temperature": 0.0,
+            "last_humidity": 0.0
+        },
+        "vl53l0x": {
+            "enabled": false,
+            "read_interval_ms": 1000,
+            "last_distance_mm": 0
+        }
+    },
     "actuators": {
         "persist_states": true,
         "safe_defaults_on_boot": true,
@@ -73,13 +87,7 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
             { "name": "relay_1", "state": false, "inverted": true },
             { "name": "relay_2", "state": false, "inverted": true },
             { "name": "relay_3", "state": false, "inverted": false }
-        ],
-        "analog": {
-            "name": "dht11",
-            "enabled": true,
-            "humidity": 0,
-            "temp": 0
-        }
+        ]
     },
 
     "file_version": "2.0.0"

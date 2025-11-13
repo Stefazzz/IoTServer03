@@ -15,7 +15,7 @@ struct RelayPin {
 static const RelayPin relayPins[] = {
     {"relay_1", PIN_RELAY_1},  // GPIO 21
     {"relay_2", PIN_RELAY_2},  // GPIO 14
-    {"relay_3", 13}            // GPIO 13 (cambié de 27 para evitar conflictos)
+    {"relay_3", PIN_RELAY_3}   // GPIO 47 
 };
 
 

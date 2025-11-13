@@ -7,6 +7,7 @@
 #include <PubSubClient.h>
 #include "Network/Network.h"
 #include "Actuators/ActuatorControl.h"
+#include "Sensors/Sensors.h"
 
 AsyncWebServer server(80);
 
@@ -55,6 +56,9 @@ void setup()
   Logger::info("=== Inicializando hardware de actuadores ===");
   ActuatorControl::begin();
   Logger::info("=== Hardware inicializado OK ===");
+
+  // Inicializar sensores (DHT11 y VL53L0X)
+  Sensors::begin();
   
     // CONECTIVIDAD WIFI
   //connectWiFi();
