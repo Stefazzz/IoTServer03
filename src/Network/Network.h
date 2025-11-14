@@ -30,7 +30,7 @@ extern String last_uplink;
 
 void callback(char *topic, byte *payload, unsigned int length);
 void reconnectMQTT();
-void publishData(float temperature, float humidity);
+void publishData(float temperature, float humidity, uint16_t distance_mm);
 void connectWiFi();
 void connectMQTT();
 void Network_loop();

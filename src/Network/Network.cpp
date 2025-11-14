@@ -302,11 +302,11 @@ void startSettingsTask()
     }
 }
 // publicacion de datos (2 datos )
-void publishData(float temperature, float humidity)
+void publishData(float temperature, float humidity, uint16_t distance_mm)
 {
-    String payload = String("{ \"TEMP\":" + String(temperature) + ", \"HUM\":" + String(humidity) + "}");
+    String payload = String("{ \"TEMP\":" + String(temperature) + ", \"HUM\":" + String(humidity) + ", \"DIST\":" + String(distance_mm) + "}");
 
-    String topic = String("FincaVA/SistemaPiscina/Actuadores"); // o "v3/tu_app_id@ttn/devices/tu_device_id/up"
+    String topic = String("FincaVA/SistemaPiscina/Sensores"); 
 
     Logger::info("Publicando mensaje: ");
     Logger::info(payload);
