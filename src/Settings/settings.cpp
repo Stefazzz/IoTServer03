@@ -25,11 +25,7 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
             "ip_static": false,
             "ipv4": "192.168.18.150",
             "subnet": "255.255.255.0",
-            "gateway": "192.168.18.1",
-            "dns_primary": "8.8.8.8",
-            "dns_secondary": "8.8.4.4",
-            "min_rssi_dbm": -80,
-            "scan_interval_s": 30
+            "gateway": "192.168.18.1"
         },
         "ring": {
             "enabled": true,
@@ -42,9 +38,9 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
         },
         "ap_ssid": "ESP329A9EF0C8F42C",
         "ap_password": "adminserver32",
-        "ap_channel": 9,
-        "ap_visibility": true,
-        "ap_connect": 4
+        "ipv4": "192.168.43.50",
+        "subnet": "255.255.255.0",
+        "gateway": "192.168.43.1"
     },
 
     "mqtt": {

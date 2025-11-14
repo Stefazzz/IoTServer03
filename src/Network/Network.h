@@ -15,12 +15,12 @@ extern const char *mqttServer;
 #define mqttPassword Settings::doc["mqtt"]["mqtt_password"].as<String>().c_str()
 #define topic_sub Settings::doc["mqtt"]["mqtt_willTopic"].as<String>().c_str()
 // Habilitar modo AP si no se conecta a WiFi
-#define AP_SSID Settings::doc["wifi"]["stations"][1]["ssid"].as<String>().c_str()
-#define AP_PASS Settings::doc["wifi"]["stations"][1]["password"].as<String>().c_str()
+#define AP_SSID Settings::doc["wifi"]["ap_ssid"].as<String>().c_str()
+#define AP_PASS Settings::doc["wifi"]["ap_password"].as<String>().c_str()
 #define wifi_AP Settings::doc["wifi"]["wifi_mode"].as<bool>()
-#define ipv4_static Settings::doc["wifi"]["stations"][1]["ipv4"].as<String>().c_str()
-#define subnet_static Settings::doc["wifi"]["stations"][1]["subnet"].as<String>().c_str()
-#define gateway_static Settings::doc["wifi"]["stations"][1]["gateway"].as<String>().c_str()
+#define ipv4_static Settings::doc["wifi"]["ipv4"].as<String>().c_str()
+#define subnet_static Settings::doc["wifi"]["subnet"].as<String>().c_str()
+#define gateway_static Settings::doc["wifi"]["gateway"].as<String>().c_str()
 // --- Variables globales ---
 extern WiFiClient espClient;
 extern PubSubClient client;
