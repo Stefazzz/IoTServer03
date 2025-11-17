@@ -47,10 +47,10 @@ static void sensorsTask(void *pv)
       {
 
         // También en un bloque sensors nuevo
-        Settings::doc["sensors"]["dht11"]["last_humidity"] = h;
-        Settings::doc["sensors"]["dht11"]["last_temperature"] = t;
+        Settings::doc["sensors"]["dht11"]["humidity"] = h;
+        Settings::doc["sensors"]["dht11"]["temperature"] = t;
         Settings::doc["sensors"]["dht11"]["ts"] = (uint32_t)now;
-        Settings::doc["sensors"]["vl53l0x"]["last_distance_mm"] = (int)dist;
+        Settings::doc["sensors"]["vl53l0x"]["distance_mm"] = (int)dist;
         Settings::doc["sensors"]["vl53l0x"]["ts"] = (uint32_t)now;
         Logger::info(String("[DHT11] T=") + t + "C H=" + h + "%");
         publishData(t, h, dist);

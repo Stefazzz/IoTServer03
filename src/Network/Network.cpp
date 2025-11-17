@@ -263,6 +263,7 @@ void reconnectMQTT()
         Logger::info("Conectando a TTN MQTT...");
         if (client.connect("ESP32Client", mqttUser, mqttPassword))
         {
+            Settings::doc["mqtt"]["mqtt_enable"] = true;
             Logger::info("✅ Conectado a TTN!");
             client.subscribe(topic_sub);
             Logger::info("📡 Suscrito a: ");
@@ -270,6 +271,7 @@ void reconnectMQTT()
         }
         else
         {
+            Settings::doc["mqtt"]["mqtt_enable"] = false;
             Logger::error("❌ Falló (rc=");
             Serial.print(client.state());
             Logger::info("), reintentando...");

@@ -1,105 +1,261 @@
 async function fetchToOut(path) {
-  const outEl = document.getElementById('uplinkData');
+  // Inicializar buffers de series si no existen
+  if (!window._series) {
+    window._series = { temp: [], hum: [], dist: [] };
+    window._maxPoints = 120; // guarda ~10 min si refrescas cada 5s
+  }
+
+  // Función simple para dibujar líneas en canvas
+  function drawLine(canvasId, data, options = {}) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    if (!data || data.length === 0) return;
+    const pad = 8;
+    const xs = data.map((_, i) => i);
+    const ymin = Math.min(...data);
+    const ymax = Math.max(...data);
+    const xMax = Math.max(1, data.length - 1);
+    const yLo = (options.min !== undefined) ? Math.min(ymin, options.min) : ymin;
+    const yHi = (options.max !== undefined) ? Math.max(ymax, options.max) : ymax;
+    const ySpan = (yHi === yLo) ? 1 : (yHi - yLo);
+
+    // Rejilla ligera
+    ctx.strokeStyle = '#eee';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = pad + (h - 2 * pad) * (i / 4);
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
+    }
+
+    // Curva
+    ctx.strokeStyle = options.color || '#1e88e5';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    data.forEach((v, i) => {
+      const x = pad + (w - 2 * pad) * (i / xMax);
+      const y = pad + (h - 2 * pad) * (1 - (v - yLo) / ySpan);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+  const temp = document.getElementById('tempValue');
+
+  const epsId = document.getElementById('espId');
+  const epsName = document.getElementById('espName');
+  const epsUser = document.getElementById('espUser');
+  const epsPass = document.getElementById('espPass');
+
+  const ssidEl = document.getElementById('ssidValue');
+  const ipv4El = document.getElementById('ipv4Value');
+  const subnet = document.getElementById('subnetValue');
+
+  const mqttState = document.getElementById('mqttState');
+  const mqttServer = document.getElementById('mqttServe');
+  const mqttPort = document.getElementById('mqttPort');
+  const mqttTopic = document.getElementById('mqttTopic');
+
+
+  const digitalesList = document.getElementById('digitalesList');
+  const analogosList = document.getElementById('analogosList');
   const lastEl = document.getElementById('last');
+
+  const lastTemp = document.getElementById('lastTemp');
+  const lastHum = document.getElementById('lastHum');
+  const lastDistance = document.getElementById('lastDistance');
+
+  const versionEl = document.getElementById('version');
+
   try {
     const res = await fetch(path);
-    if (!res.ok) {
-      outEl.textContent = '❌ Error: ' + res.status;
-      return;
-    }
+    if (!res.ok) throw new Error('Error HTTP ' + res.status);
     const json = await res.json();
 
+  console.log(json);
+
+  if (json.sensors && json.sensors.dht11 && json.sensors.dht11.temperature !== undefined) {
+    temp.textContent = `${json.sensors.dht11.temperature}°`;
+  } else { 
+    temp.textContent = `0°`;
+  }
+
 // Mostrar SSID actual si existe
-const ssidEl = document.getElementById('ssidValue');
-if (json.data.wifi && json.data.wifi.stations && json.data.wifi.stations.length > 0) {
-  ssidEl.textContent = json.data.wifi.stations[0].ssid;
-} else {
-  ssidEl.textContent = "No conectado";
-}
-
-/*
-// Mostrar IPV4 actual si existe
-const ipv4 = document.getElementById('ipv4Value');
-if (json.wifi.defaults) {
-  ipv4.textContent = json.wifi.defaults.ipv4;
-} else {
-  ipv4.textContent ="No IPV4";
-}*/
-
-
-   let display = '';
-    if (json.wifi && json.wifi.wifi_mode) {
-      const wifiInfo = json.wifi.wifi_mode;
-      display += `=== Estado de Conexión ===\n`;
-      display += `🌐 Red WiFi: ${wifi.ssid}\n`;
-      display += `📡 Dirección IP: ${wifiInfo.ip}\n`;
-      if (wifiInfo.rssi) {
-        const signal = wifiInfo.rssi;
-        let signalIcon = '📶';
-        if (signal < -70) signalIcon = '▂▁';
-        else if (signal < -60) signalIcon = '▃▂▁';
-        else if (signal < -50) signalIcon = '▅▃▂▁';
-        else signalIcon = '▇▅▃▂▁';
-        display += `${signalIcon} Señal: ${signal} dBm\n`;
-      }
-      if (json.wifi.status === "ap_mode") {
-        display += "⚠️ Modo Punto de Acceso Activo\n";
-      }
-      display += '\n';
+    //---ESP Id ---
+    if (json.data.device_id) {
+      epsId.textContent = json.data.device_id;
+    } else {
+      epsId.textContent = "Desconocido";
+    }
+    //---ESP Name ---
+    if (json.data.device_name) {
+      epsName.textContent = json.data.device_name;
+    } else {
+      epsName.textContent = "Desconocido";
+    }
+    //---ESP User ---
+    if (json.data.device_user) {
+      epsUser.textContent = json.data.device_user;
+    } else {
+      epsUser.textContent = "Desconocido";
+    }
+    //---ESP Pass ---
+    if (json.data.device_password) {
+      epsPass.textContent = json.data.device_password;
+    } else {
+      epsPass.textContent = "Desconocido";
     }
 
-    if (json.actuators) {
-      display += "=== Actuadores ===\n";
+    // --- WIFI ---
+    if (json.data.wifi && json.data.wifi.stations && json.data.wifi.stations.length > 0) {
+      ssidEl.textContent = json.data.wifi.stations[0].ssid || "Desconocido";
+    } else {
+      ssidEl.textContent = "No conectado";
+    }
+    // --- IPV4 ---
+    if (json.data.wifi.defaults && json.data.wifi.defaults.ipv4) {
+      ipv4El.textContent = json.data.wifi.defaults.ipv4;
+    } else {
+      ipv4El.textContent = "Sin IP";
+    }
+    // --- SUBNET ---
+    if (json.data.wifi && json.data.wifi.defaults && json.data.wifi.defaults.subnet) {
+      subnet.textContent = json.data.wifi.defaults.subnet;
+    } else {
+      subnet.textContent = "Sin máscara";
+    }
 
-      if (json.actuators.digital) {
-        display += "➡️ Digitales:\n";
-        json.actuators.digital.forEach(d => {
-          display += `- ${d.name}: ${d.state ? "ON" : "OFF"}\n`;
+    // --- MQTT Status---
+    if (json.data.mqtt) {
+      const status = json.data.mqtt.mqtt_enable ? "✅ Activo" : "❌ Inactivo";
+      mqttState.textContent = status;
+    } else {
+      mqttState.textContent = "No hay datos MQTT";
+    }
+    // --- MQTT Server---
+    if (json.data.mqtt) {
+      const mqttServe = json.data.mqtt.mqtt_server ? json.data.mqtt.mqtt_server : "Desconocido";
+      mqttServer.textContent = `${mqttServe}`;
+    } else {
+      mqttServer.textContent = "No hay datos MQTT";
+    }
+    // --- MQTT Port---
+    if (json.data.mqtt) {
+      const mqttPrt = json.data.mqtt.mqtt_port ? json.data.mqtt.mqtt_port : "Desconocido";
+      mqttPort.textContent = `${mqttPrt}`;
+    } else {
+      mqttPort.textContent = "No hay datos MQTT";
+    }
+    // --- MQTT Topic---
+    if (json.data.mqtt) {
+      const mqttTpc = json.data.mqtt.mqtt_willTopic ? json.data.mqtt.mqtt_willTopic : "Desconocido";
+      mqttTopic.textContent = `${mqttTpc}`;
+    } else {
+      mqttTopic.textContent = "No hay datos MQTT";
+    }
+
+    // --- ACTUADORES ---
+    if (json.data.actuators) {
+      // Digitales - crear un elemento por cada uno
+      if (json.data.actuators.digital && json.data.actuators.digital.length > 0) {
+        digitalesList.innerHTML = "";
+        json.data.actuators.digital.forEach((d) => {
+          const div = document.createElement('div');
+          div.style.padding = "5px 0";
+          div.textContent = `${d.name}: ${d.state ? "✅ ON" : "❌ OFF"}`;
+          digitalesList.appendChild(div);
         });
+      } else {
+        digitalesList.textContent = "Sin datos digitales";
       }
 
-      if (json.actuators.analog) {
-        const a = json.actuators.analog;
-        display += `➡️ Analógico (${a.name}): ${a.value_percent}%\n`;
+      // Analógicos - crear un elemento por cada uno
+      if (json.data.actuators.analog && Array.isArray(json.data.actuators.analog)) {
+        analogosList.innerHTML = "";
+        json.data.actuators.analog.forEach((a) => {
+          const div = document.createElement('div');
+          div.textContent = `${a.name}: ${a.value_percent}%`;
+          analogosList.appendChild(div);
+        });
+      } else if (json.data.actuators.analog && typeof json.data.actuators.analog === 'object') {
+        analogosList.innerHTML = "";
+        const a = json.data.actuators.analog;
+        const div = document.createElement('div');
+        div.textContent = `${a.name}: ${a.value_percent}%`;
+        analogosList.appendChild(div);
+      } else {
+        analogosList.textContent = "Sin datos analógicos";
+      }
+    } else {
+      digitalesList.textContent = "No hay datos de actuadores";
+      analogosList.textContent = "No hay datos de actuadores";
+    }
+
+    // Actualizar últimos valores de sensores
+    if (json.data.sensors) {
+      // Temperatura
+      if (json.data.sensors.dht11?.temperature !== undefined) {
+        const t = Number(json.data.sensors.dht11.temperature);
+        lastTemp.textContent = `${t} °C`;
+        window._series.temp.push(t);
+        if (window._series.temp.length > window._maxPoints) window._series.temp.shift();
+        drawLine('chartTemp', window._series.temp, { color: '#e53935' });
+      } else {
+        lastTemp.textContent = `N/A`;
+      }
+
+      // Humedad
+      if (json.data.sensors.dht11?.humidity !== undefined) {
+        const h = Number(json.data.sensors.dht11.humidity);
+        lastHum.textContent = `${h} %`;
+        window._series.hum.push(h);
+        if (window._series.hum.length > window._maxPoints) window._series.hum.shift();
+        drawLine('chartHum', window._series.hum, { color: '#43a047' });
+      } else {
+        lastHum.textContent = `N/A`;
+      }
+
+      // Distancia (mm -> cm)
+      if (json.data.sensors.vl53l0x?.distance_mm !== undefined) {
+        const cm = Number(json.data.sensors.vl53l0x.distance_mm) / 10;
+        lastDistance.textContent = `${cm.toFixed(1)} cm`;
+        window._series.dist.push(cm);
+        if (window._series.dist.length > window._maxPoints) window._series.dist.shift();
+        drawLine('chartDist', window._series.dist, { color: '#1e88e5' });
+      } else {
+        lastDistance.textContent = `N/A`;
       }
     }
-
-    // Procesar datos del último uplink si existe
-    if (json.last_uplink_json) {
-      display += '=== Último Mensaje ===\n';
-      display += JSON.stringify(json.last_uplink_json, null, 2);
-    } else if (json.last_uplink_raw) {
-      display += '=== Último Mensaje (Raw) ===\n';
-      display += json.last_uplink_raw;
-    }
-
-    // Si no hay datos específicos, mostrar todo el JSON
-    if (!display && json) {
-      display = JSON.stringify(json, null, 2);
-    }
-
-    outEl.textContent = display;
 
     // Actualizar timestamp
     const now = new Date();
     if (lastEl) {
-      lastEl.textContent = '🕒 Última actualización: ' + now.toLocaleString();
+      lastEl.textContent = 'Última actualización: ' + now.toLocaleString();
     }
+
+    // Actualizar versión en el footer
+    if (json.data.file_version) {
+      versionEl.textContent = `Versión: ${json.data.file_version}`;
+    }else {
+      versionEl.textContent = `Versión desconocida`;
+    }
+
   } catch (e) {
-    outEl.textContent = '❌ Error en la petición: ' + e.message;
-    console.error('Error fetching data:', e);
+    console.error("Error en fetchToOut:", e);
   }
 }
 
 // Al abrir la página, cargar los settings actuales
 window.addEventListener('load', () => {
-  fetchToOut('/api/settings');
-  // Actualizar cada 10 segundos (10000 ms)
-  setInterval(() => fetchToOut('/api/settings'), 10000);
+  const API_URL = '/api/settings';
+  fetchToOut(API_URL);
+  // Auto-actualizar cada 5s
+  setInterval(() => fetchToOut(API_URL), 5000);
 
   // Configurar botón de actualización si existe
   const refreshBtn = document.getElementById('btn-refresh');
   if (refreshBtn) {
-    refreshBtn.addEventListener('click', () => fetchToOut('/api/settings'));
+    refreshBtn.addEventListener('click', () => fetchToOut(API_URL));
   }
 });

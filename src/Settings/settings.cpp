@@ -14,7 +14,7 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
         "wifi_mode": true,
         "wifi_timeout_ms": 15000,
         "stations": [
-            { "ssid": "Nicoll", "password": "38875133", "priority": 1, "ip_static": false },
+            { "ssid": "Escobar", "password": "38875133", "priority": 1, "ip_static": false },
             {
             "ssid": "ESP32_EMERGENCY", "password": "hola1234", "priority": 2,
             "ip_static": true, "ipv4": "192.168.43.50", "subnet": "255.255.255.0",
@@ -67,13 +67,13 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
             "read_interval_ms": 2000,
             "temperature_offset": 0.0,
             "humidity_offset": 0.0,
-            "last_temperature": 0.0,
-            "last_humidity": 0.0
+            "temperature": 0.0,
+            "humidity": 0.0
         },
         "vl53l0x": {
             "enabled": false,
             "read_interval_ms": 1000,
-            "last_distance_mm": 0
+            "distance_mm": 0
         }
     },
     "actuators": {

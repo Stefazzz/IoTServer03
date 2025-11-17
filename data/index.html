@@ -10,53 +10,117 @@
 </head>
 
 <body>
-    <div id="cont_padre">
-        <header id="header" class="site-header">
+    <header id="header" class="site-header">
 
-            <div id="name_container">
-                <h1 class="site-title">Finca Villa Alejandra</h1>
-                <span id="location">Guadalajara de Buga</span>
+        <div id="name_container">
+            <h1 id="name_finca">Finca Villa Alejandra</h1>
+            <span id="location">Guadalajara de Buga</span>
+        </div>
+
+
+        <div id="cont_datetime">
+            <div class="site-date">
+                <span id="dateNow" aria-live="polite">Cargando fecha...</span>
+            </div>
+            <div class="site-time">
+                <span id="timeNow" aria-live="polite">--:--:--</span>
+            </div>
+        </div>
+
+        <div id="cont_temp" class="site-temp">
+            <figure id="figure_temp">
+                <img src="assets/img/temperatura.png" alt="Temperatura" id="img_temp">
+            </figure>
+            <div class="site-temp__value">
+                <span id="tempValue" class="cont_temp_span">0°</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="cont_padre">
+
+        <div id="cont_esp">
+            <h2 id="titulo_esp">Datos ESP</h2>
+            <div id="data_eps">
+                <p>ID: <span id="espId">Cargando...</span></p>
+                <p>Nombre: <span id="espName">Cargando...</span></p>
+                <p>Usuario: <span id="espUser">Cargando...</span></p>
+                <p>Contraseña: <span id="espPass">Cargando...</span></p>
+            </div>
+        </div>
+
+        <div id="cont_main">
+
+            <div id="cont_wifi" class="contenedor">
+                <h2>Estado de la conexión WiFi</h2>
+                <div id="cont_wifi_inter">
+                    <p>Nombre:<span id="ssidValue">Cargando...</span></p>
+                    <p>IPv4: <span id="ipv4Value">Cargando...</span></p>
+                    <p>Máscara: <span id="subnetValue">Cargando...</span></p>
+                </div>
             </div>
 
-
-            <div class="site-header__meta">
-                <div class="site-date">
-                    <span id="dateNow" aria-live="polite">Cargando fecha...</span>
+            <div id="cont_mqtt" class="contenedor">
+                <h3>MQTT</h3>
+                <div id="cont_mqtt_inter">
+                    <p>Estado: <span id="mqttState">Cargando...</span></p>
+                    <p>Server: <span id="mqttServe">Cargando...</span></p>
+                    <p>Puerto: <span id="mqttPort">Cargando...</span></p>
+                    <p>Topic: <span id="mqttTopic">Cargando...</span></p>
                 </div>
-                <div class="site-time">
-                    <span id="timeNow" aria-live="polite">--:--:--</span>
+            </div>
+
+            <div id="cont_actuators" class="contenedor">
+                <h3>Actuadores</h3>
+                <div id="cont_actuators_inter">
+                    
+                <div id="digitalesContainer">
+                    <h4>Digitales:</h4>
+                    <div id="digitalesList">Cargando...</div>
+                </div>
+
+                    <div id="analogosContainer">
+                        <h4>Analógicos:</h4>
+                        <div id="analogosList">Cargando...</div>
+                    </div>
+
                 </div>
             </div>
 
-            <div id="cont_temp" class="site-temp">
-                <figure id="figure_temp">
-                    <img src="assets/img/temperatura.png" alt="Temperatura" id="img_temp">
-                </figure>
-                <div class="site-temp__value">
-                    <span id="tempValue" class="cont_temp_span">20°</span>
+            <div id="cont_sensors" class="contenedor">
+                <h2>Sensores</h2>
+                <div id="cont_sensors_inter">
+                    <p>Temperatura: <span id="lastTemp">Cargando...</span></p>
+                    <p>Humedad: <span id="lastHum">Cargando...</span></p>
+                    <p>Distancia: <span id="lastDistance">Cargando...</span></p>
+                    <div id="charts" style="margin-top:12px; display:grid; gap:12px;">
+                        <div>
+                            <label>Temperatura (°C)</label>
+                            <canvas id="chartTemp" width="320" height="120" style="border:1px solid #ddd; width:100%; max-width:480px;"></canvas>
+                        </div>
+                        <div>
+                            <label>Humedad (%)</label>
+                            <canvas id="chartHum" width="320" height="120" style="border:1px solid #ddd; width:100%; max-width:480px;"></canvas>
+                        </div>
+                        <div>
+                            <label>Distancia (cm)</label>
+                            <canvas id="chartDist" width="320" height="120" style="border:1px solid #ddd; width:100%; max-width:480px;"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </header>
 
-        <div>
-            <h3>Último uplink recibido</h3>
-            <pre id="uplinkData">Cargando uplink...</pre>
-            <button id="btn-refresh">Actualizar ahora</button>
         </div>
-        <div>
-            <h3>Red WiFi actual:</h3>
-            <span id="ssidValue">Cargando...</span>
-        </div>
-                <div>
-            <h3>IPV4:</h3>
-            <span id="ipv4Value">Cargando...</span>
-        </div>
-    </div>
-    <!-- incluir script que actualiza hora/fecha -->
-    <script src="assets/js/header.js"></script>
-    <!-- loader de datos (settings / last_uplink) -->
-    <!-- Se carga peticiones.js que muestra el estado WiFi y último uplink en #uplinkData -->
-    <script src="assets/js/peticiones.js"></script>
+
+        <p id="last">Última actualización: --</p>
+        <button id="btn-refresh">Actualizar ahora</button>
+    </main>
+
+    <footer id="version">Cargando...</footer>
 </body>
-
+<!-- incluir script que actualiza hora/fecha -->
+<script src="assets/js/header.js"></script>
+<!-- loader de datos (settings / last_uplink) -->
+<!-- Se carga peticiones.js que muestra el estado WiFi y último uplink en #uplinkData -->
+<script src="assets/js/peticiones.js"></script>
 </html>

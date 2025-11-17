@@ -1,50 +1,213 @@
+:root{
+    --principal: #00d5ff;
+    --segundario: #35eed2;
+    --texto: #4fc87c;
+    --fondo: #f0f0f0;
+    --darkTransparent: #00000000;
+    /* glass/tint helpers */
+    --glass-bg: rgba(255,255,255,0.55);
+    --glass-border: rgba(255,255,255,0.35);
+    --glass-shadow: rgba(0,0,0,0.25);
+}
+
 *{
+    box-sizing: border-box;
+    transition: all 0,3s;
+    font-family: 'work', 'calibri';
+}
+::placeholder, ::-moz-placeholder{
+    color: inherit;
+    font-family: inherit;
+}
+figure{
+    margin: auto;
+    padding: 0;
+    width: 210px;
+}
+    figure img{
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+body, html{
     margin: 0;
     padding: 0;
 }
 body{
-    height: 100vh;
-    width: 100vw;
-    margin: 0;
-    padding: 0;
+    font-size: 16px;
+    min-height: 100vh;
+    min-width: 95vw;
+    background-color: var(--fondo);
+    position: relative;
 }
-div#cont_padre{
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
+
+/* Blurred background image behind all content (no size changes) */
+body::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: url('../img/piscina.jpg') center / cover no-repeat fixed;
+    filter: blur(10px) brightness(0.9);
+    transform: scale(1.05); /* avoid edge cropping from blur */
 }
 
 header#header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     height: 10%;
     width: 100%;
-    gap: 11%;
-    background-color: rgb(147, 221, 221);
+    gap: 5%;
+    background-color: rgba(0, 213, 255, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1% 4% 1% 2%;
 }
+    #name_finca {
+        font-size: 20px;
+        margin: 0;
+        padding: 0;
+    }
 
-div#cont_temp {
-    display: flex;
-    justify-content: center;
+    #location {
+        font-size: 15px;
+    }
+
+    div#cont_datetime{
+        font-size: 15px;
+    }
+        #dateNow {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+    div#cont_temp {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    #figure_temp {
+        width: 30px;
+    }
+    .cont_temp_span {
+        font-size: 25px;
+    }
+
+    #img_temp {
+        width: 100%;
+    }
+
+
+main#cont_padre {
     align-items: center;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    justify-content: center;
+    margin-top: 15px;
+}
+    div#cont_esp{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(53, 238, 210, 0.30);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        box-shadow: 2px 2px 5px var(--glass-shadow);
+        width: 95%;
+    }
+        #titulo_esp {
+            font-weight: normal;
+            font-size: 25px;
+            margin: 0;
+            padding: 0;
+        }
+    div#data_eps {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        width: 100%;
+        gap: 10%;
+    }
+        #data_eps p {
+            margin-bottom: 10px;
+            padding: 0;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        #data_eps span {
+            font-weight: normal;
+        }
+
+div#cont_main{
+    display: grid;
+    grid-template-columns: repeat(1,320px);
+    gap: 5px;
 }
 
+.contenedor {
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px var(--glass-shadow);
+    margin: 20px;
+    padding: 10px;
+    width: 90%;
+}
+    .contenedor h2, .contenedor h3 {
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    .contenedor div {
+        margin-top: 10px;
+        padding: 0 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        height: 80%;
+    }
+        .contenedor p {
+            font-size: 15px;
+            margin: 5px 0;
+            padding: 0;
+            font-weight: bold;
+        }
+        .contenedor span {
 
-#figure_temp {
-    width: 40px;
-    margin: 0;
-    padding: 0;
-}
-.cont_temp_span {
-    font-size: 30px;
+            font-weight: normal;
+        }
+
+/* Ensure canvases never overflow their card width */
+#charts canvas{
+    max-width: 100%;
+    height: auto;
+    display: block;
 }
 
-#img_temp {
-    width: 100%;
+@media only screen and (min-width: 768px){
+
+    div#cont_main{
+        grid-template-columns: repeat(2, 320px);
+        gap: 35px;
+    }
+    
 }
-.raya {
-    border-right: black 1px solid;
+
+@media only screen and (min-width: 1280px){
+
+    div#cont_main{
+        grid-template-columns: repeat(4, 380px);
+        gap: 35px;
+    }
+    
 }
