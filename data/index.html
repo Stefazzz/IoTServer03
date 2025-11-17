@@ -90,21 +90,21 @@
             <div id="cont_sensors" class="contenedor">
                 <h2>Sensores</h2>
                 <div id="cont_sensors_inter">
-                    <p>Temperatura: <span id="lastTemp">Cargando...</span></p>
-                    <p>Humedad: <span id="lastHum">Cargando...</span></p>
-                    <p>Distancia: <span id="lastDistance">Cargando...</span></p>
-                    <div id="charts" style="margin-top:12px; display:grid; gap:12px;">
-                        <div>
-                            <label>Temperatura (°C)</label>
-                            <canvas id="chartTemp" width="320" height="120" style="border:1px solid #ddd; width:100%; max-width:480px;"></canvas>
+                    <div class="sensors-grid">
+                        <div class="sensor-card">
+                            <h4 class="sensor-title">Temperatura</h4>
+                            <div class="sensor-value"><span id="lastTemp">Cargando...</span></div>
+                            <canvas id="chartTemp" width="320" height="120"></canvas>
                         </div>
-                        <div>
-                            <label>Humedad (%)</label>
-                            <canvas id="chartHum" width="320" height="120" style="border:1px solid #ddd; width:100%; max-width:480px;"></canvas>
+                        <div class="sensor-card">
+                            <h4 class="sensor-title">Humedad</h4>
+                            <div class="sensor-value"><span id="lastHum">Cargando...</span></div>
+                            <canvas id="chartHum" width="320" height="120"></canvas>
                         </div>
-                        <div>
-                            <label>Distancia (cm)</label>
-                            <canvas id="chartDist" width="320" height="120" style="border:1px solid #ddd; width:100%; max-width:480px;"></canvas>
+                        <div class="sensor-card">
+                            <h4 class="sensor-title">Distancia</h4>
+                            <div class="sensor-value"><span id="lastDistance">Cargando...</span></div>
+                            <canvas id="chartDist" width="320" height="120"></canvas>
                         </div>
                     </div>
                 </div>
