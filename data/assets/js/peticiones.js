@@ -201,14 +201,79 @@ async function fetchToOut(path) {
       }
 
       // Modos piscina 
-      if (json.data.actuators.piscina_modes) {
+      if (json.data.actuators.piscina_modes && json.data.actuators.active_pool_mode !== undefined) {
         analogosList.innerHTML = "";
-        // Obtener solo los nombres de las claves
+        const activeMode = json.data.actuators.active_pool_mode;
+        
+        // Crear botón para cada modo (excepto "none" que es OFF)
         Object.keys(json.data.actuators.piscina_modes).forEach(modeName => {
-          const div = document.createElement('div');
-          div.textContent = modeName;   
-          analogosList.appendChild(div);
+          if (modeName === 'none') return; // Saltar el modo "none" (OFF)
+          
+          const row = document.createElement('div');
+          row.className = 'mode-row';
+          
+          const btn = document.createElement('button');
+          btn.className = 'btn-mode';
+          btn.textContent = modeName.toUpperCase();
+          
+          // Marcar si es el modo activo
+          if (activeMode === modeName) {
+            btn.classList.add('active');
+          }
+          
+          btn.addEventListener('click', async () => {
+            // Deshabilitar todos los botones durante la petición
+            const allBtns = analogosList.querySelectorAll('.btn-mode');
+            allBtns.forEach(b => b.disabled = true);
+            
+            try {
+              const resp = await fetch('/api/pool_mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: modeName })
+              });
+              if (!resp.ok) throw new Error('HTTP ' + resp.status);
+              await fetchToOut('/api/settings');
+            } catch (e) {
+              console.error('Error setting pool mode', e);
+            } finally {
+              allBtns.forEach(b => b.disabled = false);
+            }
+          });
+          
+          row.appendChild(btn);
+          analogosList.appendChild(row);
         });
+        
+        // Agregar botón OFF
+        const offRow = document.createElement('div');
+        offRow.className = 'mode-row';
+        const offBtn = document.createElement('button');
+        offBtn.className = 'btn-mode btn-mode-off';
+        offBtn.textContent = 'OFF';
+        if (activeMode === 'none') {
+          offBtn.classList.add('active');
+        }
+        offBtn.addEventListener('click', async () => {
+          const allBtns = analogosList.querySelectorAll('.btn-mode');
+          allBtns.forEach(b => b.disabled = true);
+          try {
+            const resp = await fetch('/api/pool_mode', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mode: 'none' })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            await fetchToOut('/api/settings');
+          } catch (e) {
+            console.error('Error turning off pool mode', e);
+          } finally {
+            allBtns.forEach(b => b.disabled = false);
+          }
+        });
+        offRow.appendChild(offBtn);
+        analogosList.appendChild(offRow);
+        
       } else {
         analogosList.textContent = "Sin modos piscina";
       }

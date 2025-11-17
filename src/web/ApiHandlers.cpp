@@ -183,4 +183,33 @@ namespace ApiHandlers
         sendJsonEnvelope(req, 200, out, 10); // code=10: relay updated
     }
 
+    // ========== POOL MODES ==========
+    // POST /api/pool_mode  (Body JSON: {"mode":"jacuzzi"})
+    void handlePoolModeBody(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total)
+    {
+        String body;
+        body.reserve(len);
+        for (size_t i = 0; i < len; i++) body += static_cast<char>(data[i]);
+
+        StaticJsonDocument<256> in;
+        DeserializationError err = deserializeJson(in, body);
+        if (err) { sendError(req, 400, "invalid_json"); return; }
+        if (!in.containsKey("mode")) { sendError(req, 422, "missing_mode"); return; }
+
+        const char* modeName = in["mode"].as<const char*>();
+        
+        bool ok = ActuatorControl::setPoolMode(modeName);
+        if (!ok) { sendError(req, 404, "mode_not_found"); return; }
+
+        // Persist if configured
+        bool persist = Settings::doc["actuators"]["persist_states"].as<bool>();
+        if (persist) Settings::save();
+
+        // Response payload
+        StaticJsonDocument<256> out;
+        out["mode"] = modeName;
+        out["ok"] = true;
+        sendJsonEnvelope(req, 200, out, 20); // code=20: pool mode changed
+    }
+
 } // namespace ApiHandlers

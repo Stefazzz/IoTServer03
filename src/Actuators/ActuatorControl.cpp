@@ -13,12 +13,19 @@ struct RelayPin {
 // Mapeo de relés a pines GPIO (ajusta según tu hardware)
 // Nota: En ESP32-S3, evita usar GPIO 26-32 (USB), GPIO 19-20 (USB), GPIO 0 (boot)
 static const RelayPin relayPins[] = {
-    {"relay_1", PIN_RELAY_1},  // GPIO 21
-    {"relay_2", PIN_RELAY_2},  // GPIO 14
-    {"relay_3", PIN_RELAY_3}   // GPIO 47 
+    {"Motor", PIN_RELAY_1},  // GPIO 21
+    {"Led_Jacuzzi", PIN_RELAY_2},  // GPIO 14
+    {"Led_Piscina", PIN_RELAY_3}   // GPIO 47 
 };
 
-
+// Mapeo de válvulas a pines GPIO
+static const RelayPin valvePins[] = {
+    {"chorros", PIN_VALVE_CHORROS},
+    {"retorno_jacuzzi", PIN_VALVE_RETORNO_JACUZZI},
+    {"desnatador", PIN_VALVE_DESNATADOR},
+    {"fondo", PIN_VALVE_FONDO},
+    {"cascada", PIN_VALVE_CASCADA}
+};
 
 void begin() {
     Logger::info("[ActuatorControl] Inicializando actuadores...");
@@ -30,6 +37,15 @@ void begin() {
         digitalWrite(relayPins[i].pin, LOW);  // Estado inicial apagado
         Logger::info(String("[ActuatorControl] Pin ") + relayPins[i].pin + " configurado para " + relayPins[i].name);
     }
+    
+    // Configurar pines de válvulas
+    size_t numValves = sizeof(valvePins) / sizeof(valvePins[0]);
+    for (size_t i = 0; i < numValves; i++) {
+        pinMode(valvePins[i].pin, OUTPUT);
+        digitalWrite(valvePins[i].pin, LOW);  // Estado inicial cerrado
+        Logger::info(String("[ActuatorControl] Pin ") + valvePins[i].pin + " configurado para válvula " + valvePins[i].name);
+    }
+    
     Logger::info("[ActuatorControl] Actuadores inicializados OK");
 }
 
@@ -146,4 +162,90 @@ bool setDimmerValue(int percent) {
     return true;
 }
 */
+
+void applyValveStates() {
+    if (!Settings::doc.containsKey("actuators")) return;
+    if (!Settings::doc["actuators"].containsKey("valves")) return;
+    
+    JsonArray valvesArray = Settings::doc["actuators"]["valves"].as<JsonArray>();
+    
+    for (JsonVariant valve : valvesArray) {
+        if (!valve.containsKey("name") || !valve.containsKey("state")) continue;
+        
+        const char* name = valve["name"].as<const char*>();
+        bool state = valve["state"].as<bool>();
+        
+        // Buscar el pin correspondiente
+        size_t numValves = sizeof(valvePins) / sizeof(valvePins[0]);
+        for (size_t i = 0; i < numValves; i++) {
+            if (strcmp(valvePins[i].name, name) == 0) {
+                digitalWrite(valvePins[i].pin, state ? HIGH : LOW);
+                Logger::info(String("[ActuatorControl] Válvula ") + name + " -> " + (state ? "ABIERTA" : "CERRADA"));
+                break;
+            }
+        }
+    }
+}
+
+bool setValveState(const char* name, bool state) {
+    if (!Settings::doc.containsKey("actuators")) return false;
+    if (!Settings::doc["actuators"].containsKey("valves")) return false;
+    
+    JsonArray valvesArray = Settings::doc["actuators"]["valves"].as<JsonArray>();
+    
+    for (JsonVariant valve : valvesArray) {
+        if (!valve.containsKey("name")) continue;
+        
+        if (strcmp(valve["name"].as<const char*>(), name) == 0) {
+            valve["state"] = state;
+            
+            // Aplicar físicamente
+            for (const auto& vp : valvePins) {
+                if (strcmp(vp.name, name) == 0) {
+                    digitalWrite(vp.pin, state ? HIGH : LOW);
+                    Logger::info(String("[ActuatorControl] Válvula ") + name + " -> " + (state ? "ABIERTA" : "CERRADA"));
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+bool setPoolMode(const char* modeName) {
+    if (!Settings::doc.containsKey("actuators")) return false;
+    if (!Settings::doc["actuators"].containsKey("piscina_modes")) return false;
+    if (!Settings::doc["actuators"].containsKey("valves")) return false;
+    
+    JsonObject modes = Settings::doc["actuators"]["piscina_modes"].as<JsonObject>();
+    
+    if (!modes.containsKey(modeName)) {
+        Logger::error(String("[ActuatorControl] Modo desconocido: ") + modeName);
+        return false;
+    }
+    
+    JsonObject mode = modes[modeName].as<JsonObject>();
+    
+    // Actualizar active_pool_mode
+    Settings::doc["actuators"]["active_pool_mode"] = modeName;
+    
+    // Actualizar estados de válvulas según el modo
+    JsonArray valvesArray = Settings::doc["actuators"]["valves"].as<JsonArray>();
+    
+    for (JsonVariant valve : valvesArray) {
+        const char* valveName = valve["name"].as<const char*>();
+        if (mode.containsKey(valveName)) {
+            bool newState = mode[valveName].as<bool>();
+            valve["state"] = newState;
+        }
+    }
+    
+    // Aplicar físicamente
+    applyValveStates();
+    
+    Logger::info(String("[ActuatorControl] Modo piscina cambiado a: ") + modeName);
+    return true;
+}
+
 } // namespace ActuatorControl

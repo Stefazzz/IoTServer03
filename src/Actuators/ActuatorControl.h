@@ -20,4 +20,9 @@ namespace ActuatorControl {
     
     // Configura el dimmer
     bool setDimmerValue(int percent);
+    
+    // Pool modes y válvulas
+    void applyValveStates();
+    bool setValveState(const char* name, bool state);
+    bool setPoolMode(const char* modeName);
 }

@@ -21,4 +21,7 @@ namespace ApiHandlers
 
     // ACTUATORS
     void handleRelayBody(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total);
+    
+    // POOL MODES
+    void handlePoolModeBody(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total);
 }

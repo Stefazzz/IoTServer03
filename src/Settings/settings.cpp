@@ -84,34 +84,49 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
             { "name": "Led_Jacuzzi", "state": false, "inverted": true },
             { "name": "Led_Piscina", "state": false, "inverted": false }
         ],
+        "active_pool_mode": "none",
+        "valves": [
+            { "name": "chorros", "state": false },
+            { "name": "retorno_jacuzzi", "state": false },
+            { "name": "desnatador", "state": false },
+            { "name": "fondo", "state": false },
+            { "name": "cascada", "state": false }
+        ],
         "piscina_modes": {
-        "jacuzzi": {
-            "chorros": false,
-            "retorno_jacuzzi": true,
-            "desnatador": false,
-            "fondo": false,
-            "cascada": false
-        },
-        "chorros": {
-            "chorros": true,
-            "retorno_jacuzzi": false,
-            "desnatador": false,
-            "fondo": true,
-            "cascada": false
-        },
-        "cascada": {
-            "chorros": false,
-            "retorno_jacuzzi": false,
-            "desnatador": true,
-            "fondo": true,
-            "cascada": true
-        },
-        "filtro": {
-            "chorros": false,
-            "retorno_jacuzzi": false,
-            "desnatador": true,
-            "fondo": true,
-            "cascada": false
+            "none": {
+                "chorros": false,
+                "retorno_jacuzzi": false,
+                "desnatador": false,
+                "fondo": false,
+                "cascada": false
+            },
+            "jacuzzi": {
+                "chorros": false,
+                "retorno_jacuzzi": true,
+                "desnatador": false,
+                "fondo": false,
+                "cascada": false
+            },
+            "chorros": {
+                "chorros": true,
+                "retorno_jacuzzi": false,
+                "desnatador": false,
+                "fondo": true,
+                "cascada": false
+            },
+            "cascada": {
+                "chorros": false,
+                "retorno_jacuzzi": false,
+                "desnatador": true,
+                "fondo": true,
+                "cascada": true
+            },
+            "filtro": {
+                "chorros": false,
+                "retorno_jacuzzi": false,
+                "desnatador": true,
+                "fondo": true,
+                "cascada": false
             }
         }
     },

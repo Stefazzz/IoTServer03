@@ -116,4 +116,12 @@ void setupApi(AsyncWebServer &server)
         [](AsyncWebServerRequest *req) {},
         nullptr,
         handleRelayBody);
+    
+    // POST /api/pool_mode  (Body JSON: {mode})
+    server.on(
+        "/api/pool_mode",
+        HTTP_POST,
+        [](AsyncWebServerRequest *req) {},
+        nullptr,
+        handlePoolModeBody);
 }

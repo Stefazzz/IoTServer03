@@ -4,7 +4,13 @@
 #define PIN_RELAY_1 21  // GPIO21 para el primer relay
 #define PIN_RELAY_2 14  // GPIO14 para el segundo relay
 #define PIN_RELAY_3 47  // GPIO47 para el tercer relay
-// Otros pines pueden ser agregados aquí según se necesiten
+
+// Válvulas de piscina
+#define PIN_VALVE_CHORROS 35         // GPIO35 para válvula chorros
+#define PIN_VALVE_RETORNO_JACUZZI 36 // GPIO36 para válvula retorno jacuzzi
+#define PIN_VALVE_DESNATADOR 37      // GPIO37 para válvula desnatador
+#define PIN_VALVE_FONDO 39            // GPIO39 para válvula fondo
+#define PIN_VALVE_CASCADA 40          // GPIO3 para válvula cascada
 
 // Sensores
 #define PIN_DHT 15      // GPIO15 por defecto para DHT11
