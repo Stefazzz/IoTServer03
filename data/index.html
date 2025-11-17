@@ -54,6 +54,7 @@
             <div id="cont_wifi" class="contenedor">
                 <h2>Estado de la conexión WiFi</h2>
                 <div id="cont_wifi_inter">
+                    <p>Estado: <span id="wifiState" class="status-pill">Cargando...</span></p>
                     <p>Nombre:<span id="ssidValue">Cargando...</span></p>
                     <p>IPv4: <span id="ipv4Value">Cargando...</span></p>
                     <p>Máscara: <span id="subnetValue">Cargando...</span></p>
@@ -63,7 +64,7 @@
             <div id="cont_mqtt" class="contenedor">
                 <h3>MQTT</h3>
                 <div id="cont_mqtt_inter">
-                    <p>Estado: <span id="mqttState">Cargando...</span></p>
+                    <p>Estado: <span id="mqttState" class="status-pill">Cargando...</span></p>
                     <p>Server: <span id="mqttServe">Cargando...</span></p>
                     <p>Puerto: <span id="mqttPort">Cargando...</span></p>
                     <p>Topic: <span id="mqttTopic">Cargando...</span></p>
@@ -71,7 +72,7 @@
             </div>
 
             <div id="cont_actuators" class="contenedor">
-                <h3>Actuadores</h3>
+                <h3>Modos Piscina</h3>
                 <div id="cont_actuators_inter">
                     
                 <div id="digitalesContainer">
@@ -112,11 +113,14 @@
 
         </div>
 
-        <p id="last">Última actualización: --</p>
-        <button id="btn-refresh">Actualizar ahora</button>
+
     </main>
 
-    <footer id="version">Cargando...</footer>
+    <footer>
+        <p id="version">Cargando... </p>
+        <p id="last">Última actualización: --</p>
+        <button id="btn-refresh">Actualizar ahora</button>
+    </footer>
 </body>
 <!-- incluir script que actualiza hora/fecha -->
 <script src="assets/js/header.js"></script>

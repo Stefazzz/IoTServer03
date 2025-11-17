@@ -73,15 +73,15 @@ async function fetchToOut(path) {
     if (!res.ok) throw new Error('Error HTTP ' + res.status);
     const json = await res.json();
 
-  console.log(json);
+    console.log(json);
 
-  if (json.sensors && json.sensors.dht11 && json.sensors.dht11.temperature !== undefined) {
-    temp.textContent = `${json.sensors.dht11.temperature}°`;
-  } else { 
-    temp.textContent = `0°`;
-  }
+    if (json.sensors && json.sensors.dht11 && json.sensors.dht11.temperature !== undefined) {
+      temp.textContent = `${json.sensors.dht11.temperature}°`;
+    } else {
+      temp.textContent = `0°`;
+    }
 
-// Mostrar SSID actual si existe
+    // Mostrar SSID actual si existe
     //---ESP Id ---
     if (json.data.device_id) {
       epsId.textContent = json.data.device_id;
@@ -167,7 +167,7 @@ async function fetchToOut(path) {
 
           const label = document.createElement('span');
           label.className = 'relay-label';
-          label.textContent = d.name.replace('_',' ').toUpperCase();
+          label.textContent = d.name.replace('_', ' ').toUpperCase();
 
           // Toggle button
           const btn = document.createElement('button');
@@ -200,22 +200,17 @@ async function fetchToOut(path) {
         digitalesList.textContent = "Sin datos digitales";
       }
 
-      // Analógicos - crear un elemento por cada uno
-      if (json.data.actuators.analog && Array.isArray(json.data.actuators.analog)) {
+      // Modos piscina 
+      if (json.data.actuators.piscina_modes) {
         analogosList.innerHTML = "";
-        json.data.actuators.analog.forEach((a) => {
+        // Obtener solo los nombres de las claves
+        Object.keys(json.data.actuators.piscina_modes).forEach(modeName => {
           const div = document.createElement('div');
-          div.textContent = `${a.name}: ${a.value_percent}%`;
+          div.textContent = modeName;   
           analogosList.appendChild(div);
         });
-      } else if (json.data.actuators.analog && typeof json.data.actuators.analog === 'object') {
-        analogosList.innerHTML = "";
-        const a = json.data.actuators.analog;
-        const div = document.createElement('div');
-        div.textContent = `${a.name}: ${a.value_percent}%`;
-        analogosList.appendChild(div);
       } else {
-        analogosList.textContent = "Sin datos analógicos";
+        analogosList.textContent = "Sin modos piscina";
       }
     } else {
       digitalesList.textContent = "No hay datos de actuadores";
@@ -267,7 +262,7 @@ async function fetchToOut(path) {
     // Actualizar versión en el footer
     if (json.data.file_version) {
       versionEl.textContent = `Versión: ${json.data.file_version}`;
-    }else {
+    } else {
       versionEl.textContent = `Versión desconocida`;
     }
 

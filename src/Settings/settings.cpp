@@ -80,12 +80,41 @@ static const char DEFAULT_JSON[] PROGMEM = R"json(
         "persist_states": true,
         "safe_defaults_on_boot": true,
         "digital": [
-            { "name": "relay_1", "state": false, "inverted": true },
-            { "name": "relay_2", "state": false, "inverted": true },
-            { "name": "relay_3", "state": false, "inverted": false }
-        ]
+            { "name": "Motor", "state": false, "inverted": true },
+            { "name": "Led_Jacuzzi", "state": false, "inverted": true },
+            { "name": "Led_Piscina", "state": false, "inverted": false }
+        ],
+        "piscina_modes": {
+        "jacuzzi": {
+            "chorros": false,
+            "retorno_jacuzzi": true,
+            "desnatador": false,
+            "fondo": false,
+            "cascada": false
+        },
+        "chorros": {
+            "chorros": true,
+            "retorno_jacuzzi": false,
+            "desnatador": false,
+            "fondo": true,
+            "cascada": false
+        },
+        "cascada": {
+            "chorros": false,
+            "retorno_jacuzzi": false,
+            "desnatador": true,
+            "fondo": true,
+            "cascada": true
+        },
+        "filtro": {
+            "chorros": false,
+            "retorno_jacuzzi": false,
+            "desnatador": true,
+            "fondo": true,
+            "cascada": false
+            }
+        }
     },
-
     "file_version": "2.0.0"
 }
 )json";

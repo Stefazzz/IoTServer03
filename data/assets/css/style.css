@@ -39,6 +39,7 @@ body{
     min-width: 95vw;
     background-color: var(--fondo);
     position: relative;
+    color: #ffffff; /* texto general blanco */
 }
 
 /* Blurred background image behind all content (no size changes) */
@@ -66,22 +67,19 @@ header#header {
     padding: 1% 4% 1% 2%;
 }
     #name_finca {
-        font-size: 20px;
+        font-size: 48px;
         margin: 0;
         padding: 0;
     }
-
     #location {
-        font-size: 15px;
+        font-size: 20px;
     }
 
     div#cont_datetime{
         font-size: 15px;
     }
-        #dateNow {
-            font-size: 15px;
-            font-weight: bold;
-        }
+        #dateNow { font-size: 16px; font-weight: 600; }
+        #timeNow { font-size: 48px; font-weight: 700; line-height: 1; }
 
     div#cont_temp {
         display: flex;
@@ -113,10 +111,10 @@ main#cont_padre {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background-color: rgba(190, 190, 190, 0.3);
+        background: rgba(40,40,40,0.55);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        border: 1px solid var(--glass-border);
+        border: 1px solid rgba(255,255,255,0.25);
         border-radius: 15px;
         box-shadow: 2px 2px 5px var(--glass-shadow);
         width: 95%;
@@ -153,10 +151,10 @@ div#cont_main{
 }
 
 .contenedor {
-    background-color: var(--glass-bg);
+    background: rgba(40,40,40,0.55);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
+    border: 1px solid rgba(255,255,255,0.25);
     border-radius: 10px;
     box-shadow: 2px 2px 5px var(--glass-shadow);
     margin: 12px;
@@ -188,6 +186,13 @@ div#cont_main{
             font-weight: normal;
         }
 
+/* Oscurecer WiFi y MQTT para mayor contraste */
+#cont_wifi.contenedor,
+#cont_mqtt.contenedor{
+    background: rgba(40,40,40,0.55);
+    border-color: rgba(255,255,255,0.25);
+}
+
 /* Ensure canvases never overflow their card width */
 .sensor-card canvas{
     max-width: 100%;
@@ -196,18 +201,23 @@ div#cont_main{
 }
 
 /* Relay rows and toggle buttons (glass style) */
-.relay-row{
+.contenedor .relay-row{
     display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    justify-content: flex-start;
+    gap: 20px;
     padding: 8px 10px;
     border-radius: 8px;
+    width: 100%;
 }
+
+.contenedor .relay-actions{ display:flex; flex-direction: row; gap:8px; }
 
 .relay-label{
     font-weight: 600;
     letter-spacing: .3px;
+    min-width: 80px;
 }
 .btn-toggle{
     min-width: 84px;
@@ -228,6 +238,71 @@ div#cont_main{
 .btn-toggle.off{ background: rgba(220, 220, 220, 0.5); color: #2b2b2b; }
 .btn-toggle:disabled{ opacity:.6; cursor: not-allowed; }
 
+/* Compact action buttons for ON/OFF */
+.btn-action{
+    min-width: 56px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 1px 3px var(--glass-shadow);
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn-action.on{ background: rgba(76,175,80,0.35); border-color: rgba(76,175,80,0.5); }
+.btn-action.off{ background: rgba(183,28,28,0.35); border-color: rgba(183,28,28,0.5); }
+.btn-action.active{ box-shadow: 0 0 0 2px rgba(255,255,255,0.35) inset; }
+.btn-action:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* Pills de estado (WiFi/MQTT) */
+.status-pill{
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+    margin-left: 6px;
+    border: 1px solid rgba(255,255,255,0.35);
+    box-shadow: 0 1px 3px var(--glass-shadow);
+}
+.status-pill.on{ background: rgba(76,175,80,0.85); color:#fff; border-color: rgba(76,175,80,0.6);} /* verde */
+.status-pill.off{ background: rgba(183,28,28,0.85); color:#fff; border-color: rgba(183,28,28,0.6);} /* rojo */
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;  /* Izquierda - Derecha */
+    padding: 0 20px;                 /* separación lateral */
+    height: 50px;
+    width: 100%;
+    background-color: var(--glass-shadow);
+    font-size: 15px;
+    font-weight: bold;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+}
+
+#last {
+    font-weight: normal;
+    opacity: 0.9;
+}
+
+#btn-refresh {
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+}
+#btn-refresh:hover {
+    background: rgba(255,255,255,0.55);
+}
 
 @media only screen and (min-width: 768px){
     /* auto-fit already responsive; keep gap comfortable */
@@ -248,8 +323,8 @@ div#cont_main{
     width: 100%;
 }
 .sensor-card{
-    background: rgba(255,255,255,0.55);
-    border: 1px solid var(--glass-border);
+    background: rgba(40,40,40,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
     border-radius: 10px;
     box-shadow: 0 2px 6px var(--glass-shadow);
     padding: 10px;
