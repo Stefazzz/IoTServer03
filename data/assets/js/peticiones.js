@@ -318,6 +318,20 @@ async function fetchToOut(path) {
       }
     }
 
+    // Actualizar indicadores de válvulas en el diagrama
+    if (json.data.actuators && json.data.actuators.valves) {
+      json.data.actuators.valves.forEach((valve) => {
+        const indicator = document.querySelector(`.valve-indicator[data-valve="${valve.name}"]`);
+        if (indicator) {
+          if (valve.state === true || valve.state === 1) {
+            indicator.classList.add('open');
+          } else {
+            indicator.classList.remove('open');
+          }
+        }
+      });
+    }
+
     // Actualizar timestamp
     const now = new Date();
     if (lastEl) {
@@ -348,4 +362,5 @@ window.addEventListener('load', () => {
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => fetchToOut(API_URL));
   }
+
 });

@@ -150,6 +150,11 @@ div#cont_main{
     width: 100%;
 }
 
+/* Permite posicionar elementos flotantes bajo el grid */
+main#cont_padre{
+    position: relative;
+}
+
 .contenedor {
     background: rgba(40,40,40,0.55);
     backdrop-filter: blur(8px);
@@ -282,7 +287,7 @@ div#cont_main{
     padding: 12px 24px;
     border-radius: 12px;
     border: 2px solid rgba(255,255,255,0.3);
-    background: rgba(30, 136, 229, 0.4);
+    background: rgba(91, 91, 91, 0.4);
     color: #fff;
     font-weight: 700;
     font-size: 16px;
@@ -296,15 +301,10 @@ div#cont_main{
 }
 .btn-mode:hover{ 
     transform: translateY(-2px); 
-    box-shadow: 0 4px 12px var(--glass-shadow);
-    background: rgba(30, 136, 229, 0.6);
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(220, 220, 220, 0.35);;
 }
-.btn-mode:active{ transform: translateY(0);} 
-.btn-mode.active{ 
-    background: rgba(76, 175, 80, 0.85); 
-    border-color: rgba(76, 175, 80, 0.9);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
-}
+
 .btn-mode.btn-mode-off{ 
     background: rgba(183, 28, 28, 0.4);
 }
@@ -317,6 +317,84 @@ div#cont_main{
     box-shadow: 0 0 0 3px rgba(183, 28, 28, 0.3);
 }
 .btn-mode:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+/* Pool diagram container */
+#cont_pool_diagram.contenedor{
+    position: absolute;        /* flota dentro de main */
+    left: 30px;                /* ajusta horizontal */
+    top: calc(100% - 510px);   /* coloca bajo el grid; ajusta segÃºn alto */
+    width: min(600px, 100%);    /* tamaÃ±o razonable */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+}
+
+#pool_diagram_wrapper{
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 10px auto;
+}
+
+#pool_diagram_img{
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+/* Valve indicators - positioned absolutely over the diagram */
+.valve-indicator{
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.valve-dot{
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.8);
+    background: rgba(220,53,69,0.9); /* red by default (closed) */
+    box-shadow: 0 0 8px rgba(0,0,0,0.6), 0 0 4px rgba(255,255,255,0.3);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.valve-indicator.open .valve-dot{
+    background: rgba(40,167,69,0.9); /* green when open */
+    box-shadow: 0 0 12px rgba(40,167,69,0.8), 0 0 4px rgba(255,255,255,0.3);
+}
+
+/* Position each valve indicator based on the diagram image */
+/* Adjust these positions based on your actual image */
+#valve-jacuzzi{
+    top: 30%;
+    left: 16%;
+}
+
+#valve-fondo{
+    top: 50%;
+    left: 42%;
+}
+
+#valve-cascada{
+    top: 45%;
+    left: 65%;
+}
+
+#valve-chorros{
+    bottom: 28%;
+    left: 29%;
+}
+
+#valve-desnatador{
+    bottom: 28%;
+    left: 58%;
+}
 
 footer {
     display: flex;
