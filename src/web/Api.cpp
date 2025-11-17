@@ -108,4 +108,12 @@ void setupApi(AsyncWebServer &server)
         [](AsyncWebServerRequest *req) {},
         nullptr,
         handleBodyUpload);
+
+    // POST /api/relay  (Body JSON: {name, state|toggle})
+    server.on(
+        "/api/relay",
+        HTTP_POST,
+        [](AsyncWebServerRequest *req) {},
+        nullptr,
+        handleRelayBody);
 }

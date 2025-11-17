@@ -161,10 +161,40 @@ async function fetchToOut(path) {
       if (json.data.actuators.digital && json.data.actuators.digital.length > 0) {
         digitalesList.innerHTML = "";
         json.data.actuators.digital.forEach((d) => {
-          const div = document.createElement('div');
-          div.style.padding = "5px 0";
-          div.textContent = `${d.name}: ${d.state ? "✅ ON" : "❌ OFF"}`;
-          digitalesList.appendChild(div);
+          const row = document.createElement('div');
+          row.className = 'relay-row';
+
+
+          const label = document.createElement('span');
+          label.className = 'relay-label';
+          label.textContent = d.name.replace('_',' ').toUpperCase();
+
+          // Toggle button
+          const btn = document.createElement('button');
+          btn.className = 'btn-toggle ' + (d.state ? 'on' : 'off');
+          btn.textContent = d.state ? 'ON' : 'OFF';
+          btn.setAttribute('aria-pressed', d.state ? 'true' : 'false');
+          btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            try {
+              const resp = await fetch('/api/relay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: d.name, toggle: true })
+              });
+              if (!resp.ok) throw new Error('HTTP ' + resp.status);
+              // refrescar estado después del cambio
+              await fetchToOut('/api/settings');
+            } catch (e) {
+              console.error('Error toggling relay', e);
+            } finally {
+              btn.disabled = false;
+            }
+          });
+
+          row.appendChild(label);
+          row.appendChild(btn);
+          digitalesList.appendChild(row);
         });
       } else {
         digitalesList.textContent = "Sin datos digitales";

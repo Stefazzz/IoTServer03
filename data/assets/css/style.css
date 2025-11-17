@@ -1,7 +1,7 @@
 :root{
-    --principal: #00d5ff;
-    --segundario: #35eed2;
-    --texto: #4fc87c;
+    --principal: #ffffff;
+    --segundario: #afafaf;
+    --texto: #a4a8a6;
     --fondo: #f0f0f0;
     --darkTransparent: #00000000;
     /* glass/tint helpers */
@@ -193,6 +193,40 @@ div#cont_main{
     height: auto;
     display: block;
 }
+
+/* Relay rows and toggle buttons (glass style) */
+.relay-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+}
+
+.relay-label{
+    font-weight: 600;
+    letter-spacing: .3px;
+}
+.btn-toggle{
+    min-width: 84px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.55);
+    color: #333;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 2px 6px var(--glass-shadow);
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn-toggle:hover{ transform: translateY(-1px); box-shadow: 0 4px 10px var(--glass-shadow);}   
+.btn-toggle:active{ transform: translateY(0);} 
+.btn-toggle.on{ background: rgba(255, 179, 0, 0.85); color: #1b1b1b; border-color: rgba(255, 179, 0, .6);} /* amber like */
+.btn-toggle.off{ background: rgba(220, 220, 220, 0.5); color: #2b2b2b; }
+.btn-toggle:disabled{ opacity:.6; cursor: not-allowed; }
+
 
 @media only screen and (min-width: 768px){
 

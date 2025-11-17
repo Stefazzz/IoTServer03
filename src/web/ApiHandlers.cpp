@@ -1,6 +1,7 @@
 #include "ApiHandlers.h"
 #include "../Settings/settings.h"
 #include "../core/Logger.h"
+#include "../Actuators/ActuatorControl.h"
 
 namespace ApiHandlers
 {
@@ -132,6 +133,54 @@ namespace ApiHandlers
 
         // code = 2: guardado OK
         sendJson(req, 200, "{ \"ok\": true, \"code\": 2 }");
+    }
+
+    // ========== ACTUATORS ==========
+    // POST /api/relay  (Body JSON: {"name":"relay_1", "state":true} | {"name":"relay_1", "toggle":true})
+    void handleRelayBody(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total)
+    {
+        String body;
+        body.reserve(len);
+        for (size_t i = 0; i < len; i++) body += static_cast<char>(data[i]);
+
+        StaticJsonDocument<256> in;
+        DeserializationError err = deserializeJson(in, body);
+        if (err) { sendError(req, 400, "invalid_json"); return; }
+        if (!in.containsKey("name")) { sendError(req, 422, "missing_name"); return; }
+
+        const char* name = in["name"].as<const char*>();
+        bool hasState = in.containsKey("state");
+        bool wantToggle = in.containsKey("toggle") ? in["toggle"].as<bool>() : (!hasState);
+
+        bool newState = false;
+        if (hasState) {
+            newState = in["state"].as<bool>();
+        } else if (wantToggle) {
+            // Look up current state to invert
+            newState = false; // default
+            if (Settings::doc.containsKey("actuators") && Settings::doc["actuators"].containsKey("digital")) {
+                for (JsonVariant r : Settings::doc["actuators"]["digital"].as<JsonArray>()) {
+                    if (r.containsKey("name") && strcmp(r["name"].as<const char*>(), name) == 0) {
+                        bool cur = r["state"].as<bool>();
+                        newState = !cur;
+                        break;
+                    }
+                }
+            }
+        }
+
+        bool ok = ActuatorControl::setRelayState(name, newState);
+        if (!ok) { sendError(req, 404, "relay_not_found"); return; }
+
+        // Persist if configured
+        bool persist = Settings::doc["actuators"]["persist_states"].as<bool>();
+        if (persist) Settings::save();
+
+        // Response payload
+        StaticJsonDocument<192> out;
+        out["name"] = name;
+        out["state"] = newState;
+        sendJsonEnvelope(req, 200, out, 10); // code=10: relay updated
     }
 
 } // namespace ApiHandlers

@@ -18,4 +18,7 @@ namespace ApiHandlers
 
     
     void sendJsonEnvelope(AsyncWebServerRequest *req, int httpCode, const JsonDocument &payload, int code);
+
+    // ACTUATORS
+    void handleRelayBody(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total);
 }
