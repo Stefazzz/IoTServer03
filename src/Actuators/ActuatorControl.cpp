@@ -120,6 +120,14 @@ void applyAllStates() {
     Logger::info("[ActuatorControl] Aplicando todos los estados...");
     applyDigitalStates();
     applyAnalogValue();
+    
+    // Aplicar modo de piscina si existe
+    if (Settings::doc.containsKey("actuators") && 
+        Settings::doc["actuators"].containsKey("active_pool_mode")) {
+        const char* mode = Settings::doc["actuators"]["active_pool_mode"].as<const char*>();
+        Logger::info(String("[ActuatorControl] Aplicando modo de piscina: ") + mode);
+        applyValveStates();
+    }
 }
 
 bool setRelayState(const char* name, bool state) {
