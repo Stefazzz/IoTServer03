@@ -73,9 +73,18 @@ void applyDigitalStates() {
         for (size_t i = 0; i < numRelays; i++) {
             if (strcmp(relayPins[i].name, name) == 0) {
                 bool physicalState = inverted ? !state : state;
-                digitalWrite(relayPins[i].pin, physicalState ? HIGH : LOW);
-                Logger::info(String("[ActuatorControl] ") + name + " -> " + (state ? "ON" : "OFF") + 
-                           " (GPIO " + String(relayPins[i].pin) + " = " + (physicalState ? "HIGH" : "LOW") + ")");
+                // Nuevo comportamiento: HIGH -> OUTPUT; LOW -> INPUT (tri-state)
+                if (physicalState) {
+                    pinMode(relayPins[i].pin, OUTPUT);
+                    digitalWrite(relayPins[i].pin, HIGH);
+                } else {
+                    // Aseguramos LOW antes de liberar el pin
+                    pinMode(relayPins[i].pin, OUTPUT);
+                    digitalWrite(relayPins[i].pin, LOW);
+                    pinMode(relayPins[i].pin, INPUT);
+                }
+                Logger::info(String("[ActuatorControl] ") + name + " -> " + (state ? "ON" : "OFF") +
+                             " (GPIO " + String(relayPins[i].pin) + (physicalState ? " OUTPUT/HIGH" : " INPUT (liberado)") + ")");
                 break;
             }
         }
@@ -148,8 +157,15 @@ bool setRelayState(const char* name, bool state) {
             for (const auto& rp : relayPins) {
                 if (strcmp(rp.name, name) == 0) {
                     bool physicalState = inverted ? !state : state;
-                    digitalWrite(rp.pin, physicalState ? HIGH : LOW);
-                    Logger::info(String("[ActuatorControl] Relay ") + name + " -> " + (state ? "ON" : "OFF"));
+                    if (physicalState) {
+                        pinMode(rp.pin, OUTPUT);
+                        digitalWrite(rp.pin, HIGH);
+                    } else {
+                        pinMode(rp.pin, OUTPUT);
+                        digitalWrite(rp.pin, LOW);
+                        pinMode(rp.pin, INPUT);
+                    }
+                    Logger::info(String("[ActuatorControl] Relay ") + name + " -> " + (state ? "ON" : "OFF") + (physicalState ? " (OUTPUT/HIGH)" : " (INPUT)"));
                     return true;
                 }
             }

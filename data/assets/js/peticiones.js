@@ -65,7 +65,7 @@ async function fetchToOut(path) {
   const lastTemp = document.getElementById('lastTemp');
   const lastHum = document.getElementById('lastHum');
   const lastDistance = document.getElementById('lastDistance');
-
+  const tempValue = document.getElementById('tempValue');
   const versionEl = document.getElementById('version');
 
   try {
@@ -76,7 +76,9 @@ async function fetchToOut(path) {
     console.log(json);
 
     if (json.sensors && json.sensors.dht11 && json.sensors.dht11.temperature !== undefined) {
-      temp.textContent = `${json.sensors.dht11.temperature}°`;
+      const tHead = Number(json.sensors.dht11.temperature);
+      temp.textContent = `${tHead.toFixed(2)}°`;
+      tempValue.textContent = `${tHead.toFixed(2)} °C`;
     } else {
       temp.textContent = `0°`;
     }
@@ -286,8 +288,9 @@ async function fetchToOut(path) {
     if (json.data.sensors) {
       // Temperatura
       if (json.data.sensors.dht11?.temperature !== undefined) {
-        const t = Number(json.data.sensors.dht11.temperature);
-        lastTemp.textContent = `${t} °C`;
+          const t = Number(json.data.sensors.dht11.temperature);
+          lastTemp.textContent = `${t.toFixed(2)} °C`;
+        tempValue.textContent = `${t.toFixed(2)} °C`;
         window._series.temp.push(t);
         if (window._series.temp.length > window._maxPoints) window._series.temp.shift();
         drawLine('chartTemp', window._series.temp, { color: '#e53935' });
@@ -306,6 +309,7 @@ async function fetchToOut(path) {
         lastHum.textContent = `N/A`;
       }
 
+
       // Distancia (mm -> cm)
       if (json.data.sensors.vl53l0x?.distance_mm !== undefined) {
         const cm = Number(json.data.sensors.vl53l0x.distance_mm) / 10;
@@ -319,17 +323,47 @@ async function fetchToOut(path) {
     }
 
     // Actualizar indicadores de válvulas en el diagrama
-    if (json.data.actuators && json.data.actuators.valves) {
-      json.data.actuators.valves.forEach((valve) => {
-        const indicator = document.querySelector(`.valve-indicator[data-valve="${valve.name}"]`);
-        if (indicator) {
-          if (valve.state === true || valve.state === 1) {
-            indicator.classList.add('open');
-          } else {
-            indicator.classList.remove('open');
-          }
+    if (json.data.actuators) {
+      const act = json.data.actuators;
+
+      // Helper: normaliza valor a boolean
+      const isOn = (v) => {
+        if (typeof v === 'boolean') return v;
+        if (typeof v === 'number') return v === 1;
+        if (typeof v === 'string') {
+          const s = v.trim().toLowerCase();
+          return s === '1' || s === 'true' || s === 'on' || s === 'open';
         }
-      });
+        return false;
+      };
+
+      // Helper: aplica mapa de estados por nombre
+      const applyMap = (map) => {
+        const names = ['chorros','retorno_jacuzzi','desnatador','fondo','cascada'];
+        names.forEach((name) => {
+          const indicator = document.querySelector(`.valve-indicator[data-valve="${name}"]`);
+          if (!indicator) return;
+          const val = map ? map[name] : undefined;
+          indicator.classList.toggle('open', isOn(val));
+        });
+      };
+
+      // 1) Intentar por active_pool_mode -> piscina_modes
+      let updated = false;
+      if (act.piscina_modes && typeof act.active_pool_mode === 'string') {
+        const key = act.active_pool_mode.toLowerCase();
+        if (act.piscina_modes[key]) {
+          applyMap(act.piscina_modes[key]);
+          updated = true;
+        }
+      }
+
+      // 2) Si no fue posible, usar el array valves
+      if (!updated && Array.isArray(act.valves)) {
+        const map = {};
+        act.valves.forEach(v => { map[v.name] = v.state; });
+        applyMap(map);
+      }
     }
 
     // Actualizar timestamp

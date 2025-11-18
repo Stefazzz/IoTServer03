@@ -27,7 +27,7 @@ figure{
     figure img{
         margin: 0;
         padding: 0;
-        width: 100%;
+        width: 150%;
     }
 body, html{
     margin: 0;
@@ -87,7 +87,7 @@ header#header {
         gap: 5px;
     }
     #figure_temp {
-        width: 30px;
+        width: 55px; /* enlarged from 30px */
     }
     .cont_temp_span {
         font-size: 25px;

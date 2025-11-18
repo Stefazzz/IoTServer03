@@ -41,7 +41,7 @@
       return `${h}:${mm}:${ss} ${ampm}`;
     }
   }
-
+// Actualiza los elementos cada segundo
   function tick() {
     const now = new Date();
     if (timeEl) timeEl.textContent = formatTime12(now);
